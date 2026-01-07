@@ -59,7 +59,7 @@ npm run dev
 - `/` - Landing page with upload
 - `/demo` - Sample report (no upload required)
 - `/report/[id]` - Analysis report with PDF viewer
-- `/api/health` - Health check endpoint for production monitoring (returns `200` with `{ "status": "ok" }`)
+- `/api/health` - Health check endpoint for production monitoring (returns `200` with `{ "ok": true }`)
 
 ---
 
