@@ -69,7 +69,15 @@ types/                 # TypeScript type definitions
 - Modern sans-serif typography
 - Lots of whitespace, sharp grid
 
+## Report Features
+- **Page Reference Badges**: Each extracted item and issue shows a "p.X" badge indicating the source page in the PDF
+- **PDF Navigation**: Clicking page badges in the report view opens and navigates to that page in the PDF viewer
+- **Split View**: Report page shows analysis on left, PDF viewer on right for easy verification
+- **Client Letter Generator**: One-click generation of client-ready summary letters
+
 ## Recent Changes
+- January 7, 2026: Added visible page reference badges (p.X format) to all report items and issues
+- January 7, 2026: Page badges are now clickable and navigate to corresponding PDF page
 - January 7, 2026: Built marketing site with landing, pricing, how-it-works, about pages
 - January 7, 2026: Added navigation and footer components
 - January 7, 2026: Moved upload tool to /analyze route
