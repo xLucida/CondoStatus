@@ -375,8 +375,8 @@ const JumpNavigation = ({ activeSection }: { activeSection: string }) => {
           onClick={() => scrollToSection(section.id)}
           className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
             activeSection === section.id 
-              ? 'bg-blue-100 text-blue-700' 
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-brass-100 text-navy-800 border border-brass-300' 
+              : 'bg-white text-slate-600 hover:bg-cream-100 border border-slate-200'
           }`}
         >
           <span className="mr-1">{section.icon}</span>
@@ -472,33 +472,33 @@ Best regards,
   const highSeverityIssues = analysis.issues.filter(i => ['high', 'warning'].includes(i.severity));
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-cream-50">
       {/* Demo Banner */}
-      <div className="bg-blue-600 text-white text-center py-2 px-4 text-sm">
+      <div className="bg-navy-900 text-cream-100 text-center py-2 px-4 text-sm">
         <span className="font-medium">📋 Demo Report</span> — This is a sample analysis from a real Ontario status certificate.{' '}
-        <button onClick={() => router.push('/analyze')} className="underline hover:no-underline">
+        <button onClick={() => router.push('/analyze')} className="text-brass-400 underline hover:no-underline">
           Upload your own →
         </button>
       </div>
 
       {/* Header with Export Controls */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/')} className="text-gray-500 hover:text-gray-700">
+            <button onClick={() => router.push('/')} className="text-navy-600 hover:text-navy-800">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
             <div>
-              <h1 className="font-semibold text-gray-900 text-sm sm:text-base">{analysis.corporation}</h1>
-              <p className="text-xs sm:text-sm text-gray-500">{analysis.address}</p>
+              <h1 className="font-serif font-semibold text-navy-900 text-sm sm:text-base">{analysis.corporation}</h1>
+              <p className="text-xs sm:text-sm text-slate-500">{analysis.address}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => window.print()} 
-              className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 hidden sm:flex items-center gap-1"
+              className="px-3 py-1.5 text-sm font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 hidden sm:flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -507,24 +507,24 @@ Best regards,
             </button>
             <button 
               onClick={() => copyToClipboard(window.location.href)} 
-              className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 hidden sm:flex items-center gap-1"
+              className="px-3 py-1.5 text-sm font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 hidden sm:flex items-center gap-1"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
               Share
             </button>
-            <button onClick={() => setShowLetterModal(true)} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center gap-1">
+            <button onClick={() => setShowLetterModal(true)} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1">
               <span>📧</span>
               <span className="hidden sm:inline">Client Letter</span>
             </button>
-            <button onClick={() => router.push('/analyze')} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+            <button onClick={() => router.push('/analyze')} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-brass-500 text-navy-950 hover:bg-brass-400">
               Try Your Own
             </button>
           </div>
         </div>
         {/* Jump Navigation */}
-        <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
+        <div className="px-4 py-2 border-t border-slate-100 bg-cream-50">
           <JumpNavigation activeSection={activeSection} />
         </div>
       </header>
@@ -543,11 +543,11 @@ Best regards,
       <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
         
         {/* Action List - Sticky at top */}
-        <div id="action-list" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-32">
+        <div id="action-list" className="bg-white rounded-xl shadow-card border border-slate-200 p-6 scroll-mt-32">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg">📋</span>
-            <h2 className="text-lg font-semibold text-gray-900">Action List</h2>
-            <span className="text-xs text-gray-400">(Quick scan before diving in)</span>
+            <h2 className="text-lg font-serif font-semibold text-navy-900">Action List</h2>
+            <span className="text-xs text-slate-400">(Quick scan before diving in)</span>
           </div>
           
           <div className="grid sm:grid-cols-3 gap-4">
@@ -569,10 +569,10 @@ Best regards,
             
             <button 
               onClick={() => setShowMissingModal(true)}
-              className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-left hover:bg-gray-100 transition-colors"
+              className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-left hover:bg-slate-100 transition-colors"
             >
-              <div className="text-2xl font-bold text-gray-500">{analysis.missing_items.length}</div>
-              <div className="text-sm text-gray-600">Missing / Not disclosed</div>
+              <div className="text-2xl font-bold text-slate-500">{analysis.missing_items.length}</div>
+              <div className="text-sm text-slate-600">Missing / Not disclosed</div>
             </button>
           </div>
         </div>
@@ -607,11 +607,11 @@ Best regards,
         )}
 
         {/* Executive Summary */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-card border border-slate-200 p-6">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Executive Summary</h2>
-              <p className="text-sm text-gray-500 mt-1">Certificate dated {analysis.certificate_date} • Expires {analysis.expiry_date}</p>
+              <h2 className="text-lg font-serif font-semibold text-navy-900">Executive Summary</h2>
+              <p className="text-sm text-slate-500 mt-1">Certificate dated {analysis.certificate_date} • Expires {analysis.expiry_date}</p>
             </div>
             <RiskBadge rating={analysis.risk_rating} />
           </div>
@@ -731,16 +731,16 @@ Best regards,
         </div>
 
         {/* Bottom CTA */}
-        <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to analyze your own certificate?</h3>
-          <p className="text-gray-600 mb-4">Upload a PDF and get a detailed breakdown in under 2 minutes.</p>
-          <button onClick={() => router.push('/analyze')} className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
+        <div className="bg-cream-100 rounded-xl border border-cream-300 p-6 text-center">
+          <h3 className="text-lg font-serif font-semibold text-navy-900 mb-2">Ready to analyze your own certificate?</h3>
+          <p className="text-slate-600 mb-4">Upload a PDF and get a detailed breakdown in under 2 minutes.</p>
+          <button onClick={() => router.push('/analyze')} className="px-6 py-3 bg-brass-500 text-navy-950 font-medium rounded-lg hover:bg-brass-400">
             Analyze Status Certificate
           </button>
         </div>
 
         {/* Footer */}
-        <footer className="text-center text-sm text-gray-500 pb-8">
+        <footer className="text-center text-sm text-slate-500 pb-8">
           <p>Demo report generated from TSCC 1511 status certificate.</p>
           <p className="mt-1">Information extraction and issue spotting only. Not legal advice.</p>
         </footer>
@@ -748,12 +748,12 @@ Best regards,
 
       {/* Sticky CTA */}
       {showStickyCTA && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 bg-navy-900 border-t border-navy-800 p-3 z-40 shadow-lg">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <span className="text-sm text-gray-600 hidden sm:block">Ready to analyze your own certificate?</span>
+            <span className="text-sm text-cream-100 hidden sm:block">Ready to analyze your own certificate?</span>
             <button 
               onClick={() => router.push('/analyze')} 
-              className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+              className="w-full sm:w-auto px-6 py-2 bg-brass-500 text-navy-950 font-medium rounded-lg hover:bg-brass-400"
             >
               Analyze Status Certificate
             </button>
@@ -764,32 +764,32 @@ Best regards,
       {/* Missing Items Modal */}
       {showMissingModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-hidden">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Missing / Not Disclosed ({analysis.missing_items.length})</h3>
-              <button onClick={() => setShowMissingModal(false)} className="text-gray-400 hover:text-gray-600">
+          <div className="bg-cream-50 rounded-xl max-w-lg w-full max-h-[80vh] overflow-hidden shadow-elevated">
+            <div className="p-4 border-b border-slate-200 bg-navy-900 flex items-center justify-between rounded-t-xl">
+              <h3 className="font-serif font-semibold text-cream-100">Missing / Not Disclosed ({analysis.missing_items.length})</h3>
+              <button onClick={() => setShowMissingModal(false)} className="text-cream-200 hover:text-white">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             <div className="p-4 overflow-y-auto">
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-slate-600 mb-4">
                 The following items were not found in the certificate package. Consider requesting these from the property manager.
               </p>
               <div className="space-y-3">
                 {analysis.missing_items.map((item) => (
-                  <div key={item.id} className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <div className="font-medium text-gray-900">{item.label}</div>
-                    <div className="text-sm text-gray-600">{item.description}</div>
+                  <div key={item.id} className="p-3 bg-white border border-slate-200 rounded-lg">
+                    <div className="font-medium text-navy-900">{item.label}</div>
+                    <div className="text-sm text-slate-600">{item.description}</div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="p-4 border-t border-gray-200 bg-gray-50">
+            <div className="p-4 border-t border-slate-200 bg-cream-100">
               <button 
                 onClick={() => setShowMissingModal(false)} 
-                className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+                className="w-full px-4 py-2 bg-navy-900 text-cream-100 rounded-lg hover:bg-navy-800"
               >
                 Close
               </button>
@@ -801,10 +801,10 @@ Best regards,
       {/* Client Letter Modal */}
       {showLetterModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Client Letter</h3>
-              <button onClick={() => setShowLetterModal(false)} className="text-gray-400 hover:text-gray-600">
+          <div className="bg-cream-50 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-elevated">
+            <div className="p-4 border-b border-slate-200 bg-navy-900 flex items-center justify-between rounded-t-xl">
+              <h3 className="font-serif font-semibold text-cream-100">Client Letter</h3>
+              <button onClick={() => setShowLetterModal(false)} className="text-cream-200 hover:text-white">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -813,21 +813,21 @@ Best regards,
             <div className="p-4 overflow-y-auto max-h-[60vh]">
               <textarea
                 ref={letterRef}
-                className="w-full h-96 p-4 border border-gray-200 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-96 p-4 border border-slate-200 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brass-400"
                 defaultValue={generateClientLetter()}
               />
             </div>
-            <div className="p-4 border-t border-gray-200 flex gap-2 justify-end bg-gray-50">
+            <div className="p-4 border-t border-slate-200 flex gap-2 justify-end bg-cream-100">
               <button 
                 onClick={() => copyToClipboard(letterRef.current?.value || '')} 
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2"
+                className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                 </svg>
                 Copy
               </button>
-              <button onClick={() => setShowLetterModal(false)} className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+              <button onClick={() => setShowLetterModal(false)} className="px-4 py-2 bg-navy-900 text-cream-100 rounded-lg hover:bg-navy-800">
                 Close
               </button>
             </div>
