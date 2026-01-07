@@ -50,7 +50,7 @@ types/                 # TypeScript type definitions
 - `NEXT_PUBLIC_SENTRY_DSN` (optional): Sentry DSN for error tracking
 - `SENTRY_ORG` (optional): Sentry organization
 - `SENTRY_PROJECT` (optional): Sentry project name
-- API key required for the analyze functionality (Venice/OpenAI)
+- `VENICE_API_KEY` (required): Venice.ai API key for AI analysis with GLM-4.7 model
 
 ## Pages
 - `/` - Landing page with hero, value props, risk features, trust signals
