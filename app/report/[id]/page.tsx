@@ -92,15 +92,17 @@ const ConfidenceBar = ({ level }: { level: string }) => {
   );
 };
 
-const SeverityBadge = ({ severity }: { severity: string }) => {
+const SeverityBadge = ({ severity }: { severity?: string }) => {
+  const sev = severity || 'info';
   const config = {
     high: { bg: 'bg-red-100', text: 'text-red-800', icon: '🚨' },
     warning: { bg: 'bg-amber-100', text: 'text-amber-800', icon: '⚠️' },
     low: { bg: 'bg-blue-100', text: 'text-blue-800', icon: 'ℹ️' },
-  }[severity] || { bg: 'bg-gray-100', text: 'text-gray-800', icon: '•' };
+    info: { bg: 'bg-gray-100', text: 'text-gray-800', icon: 'ℹ️' },
+  }[sev] || { bg: 'bg-gray-100', text: 'text-gray-800', icon: '•' };
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${config.bg} ${config.text}`}>
-      <span>{config.icon}</span>{severity.toUpperCase()}
+      <span>{config.icon}</span>{sev.toUpperCase()}
     </span>
   );
 };
