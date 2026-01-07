@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { AnalysisError, ExtractionResult, Section, Issue, ExtractedItem } from '@/types';
 import { findPageForQuote } from './pdf-parser';
+import { normalizeSections } from './section-normalizer';
 
 // Venice.ai API - OpenAI-compatible endpoint
 // Uses DIEM tokens for zero-marginal-cost inference
@@ -520,8 +521,9 @@ export async function analyzeStatusCertificate(
   const parsed = parsedValue as Partial<ExtractionResult>;
   const validationErrors: string[] = [];
 
-  const sections =
+  const rawSections =
     parsed.sections && typeof parsed.sections === 'object' ? parsed.sections : {};
+  const sections = normalizeSections(rawSections as Record<string, Section>);
   if (!parsed.sections || typeof parsed.sections !== 'object') {
     validationErrors.push('Missing or invalid "sections".');
   }
