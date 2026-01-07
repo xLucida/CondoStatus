@@ -97,6 +97,7 @@ types/                 # TypeScript type definitions
 - **PDF Navigation**: Clicking page badges in the report view opens and navigates to that page in the PDF viewer
 - **Split View**: Report page shows analysis on left, PDF viewer on right for easy verification
 - **Client Letter Generator**: One-click generation of client-ready summary letters
+- **OCR Support**: Automatic OCR fallback for scanned/image-based PDFs using Tesseract.js
 
 ## Recent Changes
 - January 7, 2026: Unified demo report page design with landing page aesthetic (navy/slate/cream/brass color palette, Source Serif 4 headings, brass-colored page badges and CTAs)

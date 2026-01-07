@@ -3,6 +3,11 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { createCanvas, Canvas, CanvasRenderingContext2D } from 'canvas';
 import Tesseract from 'tesseract.js';
 
+// Disable worker for Node.js environment
+if (typeof window === 'undefined') {
+  (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '';
+}
+
 export interface PDFParseResult {
   text: string;
   pageCount: number;
@@ -77,21 +82,29 @@ export async function parsePDF(buffer: Buffer): Promise<PDFParseResult> {
   }
 }
 
+const MAX_OCR_PAGES = 50;
+
 async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
   const uint8Array = new Uint8Array(buffer);
   const loadingTask = pdfjsLib.getDocument({
     data: uint8Array,
     useSystemFonts: true,
-  });
-  const pdfDoc = await loadingTask.promise;
-  const numPages = pdfDoc.numPages;
-
-  const pages: string[] = [];
-  const worker = await Tesseract.createWorker('eng');
-
+    disableWorker: true,
+  } as any);
+  
+  let pdfDoc;
+  let worker;
+  
   try {
-    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-      console.log(`OCR processing page ${pageNum}/${numPages}...`);
+    pdfDoc = await loadingTask.promise;
+    const numPages = pdfDoc.numPages;
+    const pagesToProcess = Math.min(numPages, MAX_OCR_PAGES);
+
+    const pages: string[] = [];
+    worker = await Tesseract.createWorker('eng');
+
+    for (let pageNum = 1; pageNum <= pagesToProcess; pageNum++) {
+      console.log(`OCR processing page ${pageNum}/${pagesToProcess}...`);
       const page = await pdfDoc.getPage(pageNum);
       const viewport = page.getViewport({ scale: OCR_SCALE });
 
@@ -110,20 +123,28 @@ async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
       const imageBuffer = canvas.toBuffer('image/png');
       const { data: { text } } = await worker.recognize(imageBuffer);
       pages.push(text.trim());
+      
+      page.cleanup();
     }
+
+    const fullText = pages.join('\n\n');
+
+    return {
+      text: fullText,
+      pageCount: numPages,
+      pages,
+      metadata: {},
+      usedOCR: true,
+    };
   } finally {
-    await worker.terminate();
+    if (worker) {
+      await worker.terminate();
+    }
+    if (pdfDoc) {
+      pdfDoc.cleanup();
+    }
+    loadingTask.destroy();
   }
-
-  const fullText = pages.join('\n\n');
-
-  return {
-    text: fullText,
-    pageCount: numPages,
-    pages,
-    metadata: {},
-    usedOCR: true,
-  };
 }
 
 function renderPage(pageData: any): Promise<string> {
