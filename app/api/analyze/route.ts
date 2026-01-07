@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Analyze with Claude via Venice
-    const analysis = await analyzeStatusCertificate(extractedText);
+    const analysis = await analyzeStatusCertificate(extractedText, pdfData.pages);
 
     // Generate a simple report ID (no database, just for URL)
     const reportId = `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
