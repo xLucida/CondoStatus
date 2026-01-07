@@ -23,7 +23,7 @@ Return a JSON object with this exact structure:
   "certificate_date": "YYYY-MM-DD",
   "expiry_date": "YYYY-MM-DD (certificate date + 60 days)",
   "sections": {
-    "commonExpenses": {
+    "common_expenses": {
       "title": "Common Expenses",
       "items": [
         {
@@ -68,7 +68,7 @@ Return a JSON object with this exact structure:
         }
       ]
     },
-    "reserveFund": {
+    "reserve_fund": {
       "title": "Reserve Fund",
       "items": [
         {
@@ -143,7 +143,7 @@ Return a JSON object with this exact structure:
         }
       ]
     },
-    "specialAssessments": {
+    "special_assessments": {
       "title": "Special Assessments",
       "items": [
         {
@@ -168,7 +168,7 @@ Return a JSON object with this exact structure:
         }
       ]
     },
-    "legalProceedings": {
+    "legal_proceedings": {
       "title": "Legal Proceedings",
       "items": [
         {
@@ -333,7 +333,7 @@ Return a JSON object with this exact structure:
         }
       ]
     },
-    "rulesRestrictions": {
+    "rules": {
       "title": "Rules & Restrictions",
       "items": [
         {
@@ -378,7 +378,7 @@ Return a JSON object with this exact structure:
         }
       ]
     },
-    "buildingNotes": {
+    "building_notes": {
       "title": "Building-Specific Notes",
       "items": []
     }
@@ -417,7 +417,7 @@ CRITICAL EXTRACTION RULES:
    - Garage/parking structure issues
    - Elevator modernization
    - COVID-19 impacts
-   Add any found to buildingNotes section with appropriate status
+   Add any found to building_notes section with appropriate status
 
 6. FINANCIAL HEALTH INDICATORS:
    - Reserve fund per unit <$3,000 = WARNING
@@ -468,6 +468,32 @@ export async function analyzeStatusCertificate(
   }
 
   const result: ExtractionResult = JSON.parse(jsonStr);
+  const sectionKeyMap: Record<string, string> = {
+    commonExpenses: 'common_expenses',
+    reserveFund: 'reserve_fund',
+    specialAssessments: 'special_assessments',
+    legalProceedings: 'legal_proceedings',
+    rulesRestrictions: 'rules',
+    buildingNotes: 'building_notes',
+  };
+  if (result.sections) {
+    const normalizedSections: Record<string, Section> = {};
+    for (const [key, section] of Object.entries(result.sections)) {
+      const normalizedKey = sectionKeyMap[key] ?? key;
+      if (normalizedSections[normalizedKey]) {
+        normalizedSections[normalizedKey] = {
+          ...normalizedSections[normalizedKey],
+          items: [
+            ...normalizedSections[normalizedKey].items,
+            ...section.items,
+          ],
+        };
+      } else {
+        normalizedSections[normalizedKey] = section;
+      }
+    }
+    result.sections = normalizedSections;
+  }
 
   // Add page numbers to items and issues
   if (pages.length > 0) {

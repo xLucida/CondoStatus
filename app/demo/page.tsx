@@ -33,6 +33,13 @@ const DEMO_ANALYSIS = {
         { id: "rf-6", label: "Adequacy", value: "Adequate (per Board)", status: "ok" as const, confidence: "medium" as const, page: 12, quote: null, reason: "" },
       ]
     },
+    special_assessments: {
+      title: "Special Assessments",
+      items: [
+        { id: "sa-1", label: "Current Special Assessments", value: "None", status: "ok" as const, confidence: "high" as const, page: 10, quote: null, reason: "" },
+        { id: "sa-2", label: "Planned Assessments", value: "None noted", status: "ok" as const, confidence: "medium" as const, page: 10, quote: null, reason: "" },
+      ]
+    },
     insurance: {
       title: "Insurance Coverage",
       items: [
@@ -58,6 +65,13 @@ const DEMO_ANALYSIS = {
         { id: "mgmt-2", label: "Manager Contact", value: "(905) 604-3602", status: "ok" as const, confidence: "high" as const, page: 1, quote: null, reason: "" },
         { id: "mgmt-3", label: "Board of Directors", value: "7 directors", status: "ok" as const, confidence: "medium" as const, page: 20, quote: null, reason: "" },
         { id: "mgmt-4", label: "Total Units", value: "431 units", status: "ok" as const, confidence: "high" as const, page: 2, quote: null, reason: "" },
+      ]
+    },
+    rules: {
+      title: "Rules & Restrictions",
+      items: [
+        { id: "rules-1", label: "Units Currently Leased", value: "42 units (9.7%)", status: "ok" as const, confidence: "medium" as const, page: 22, quote: null, reason: "" },
+        { id: "rules-2", label: "Pet Policy", value: "Cats and dogs permitted with limits", status: "ok" as const, confidence: "medium" as const, page: 22, quote: null, reason: "" },
       ]
     },
     building_notes: {
