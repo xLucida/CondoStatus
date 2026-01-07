@@ -247,31 +247,357 @@ const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: numbe
 };
 
 const generateClientLetter = (analysis: Analysis) => {
+  const sections = analysis.sections || {};
   const rating = analysis.risk_rating || 'YELLOW';
-  const riskText = { GREEN: 'no significant concerns', YELLOW: 'some items requiring attention', RED: 'serious concerns that require immediate attention' }[rating];
-  const issues = (analysis.issues || []).filter(i => i.severity === 'high' || i.severity === 'warning').map(i => `• ${i.title}: ${i.finding}`).join('\n');
-  const summary = analysis.summary || { total: 0, verified: 0, warnings: 0, missing: 0 };
-  const total = summary.total ?? summary.total_items ?? 0;
-  return `Dear Client,
+  const issues = analysis.issues || [];
+  
+  // Helper to get item value from a section
+  const getItem = (sectionKey: string, itemKey: string): string | null => {
+    const section = sections[sectionKey];
+    if (!section?.items) return null;
+    const item = section.items.find((i: ExtractedItem) => i.key === itemKey);
+    return item?.value || null;
+  };
+  
+  // Helper to check if value confirms "none/zero" explicitly (only unambiguous confirmations)
+  // Uses staged approach: normalization -> numeric extraction -> zero validation -> phrase whitelist
+  const isConfirmedNone = (val: string | null): boolean => {
+    if (!val) return false; // null means unknown, not confirmed none
+    const normalized = val.trim().toLowerCase();
+    
+    // Stage 1: Exact zero value matches
+    const exactZeroValues = ['0', '0.00', 'nil', '$0', '$0.00', 'zero'];
+    if (exactZeroValues.includes(normalized)) return true;
+    
+    // Stage 2: Extract and evaluate MONETARY amounts (dollar signs)
+    // These are unambiguous - if we see $X, it's meant to be a monetary value
+    const dollarAmounts: number[] = [];
+    const dollarMatches = [...normalized.matchAll(/\$[\d,]+(?:\.\d{1,2})?/g)];
+    for (const match of dollarMatches) {
+      const amount = parseFloat(match[0].replace(/[$,]/g, ''));
+      if (!isNaN(amount)) dollarAmounts.push(amount);
+    }
+    
+    // If we found dollar amounts:
+    // - Any non-zero = NOT confirmed none (return false)
+    // - All zeros = confirmed none (return true)
+    if (dollarAmounts.length > 0) {
+      if (dollarAmounts.some(a => a > 0)) return false;
+      if (dollarAmounts.every(a => a === 0)) return true;
+    }
+    
+    // Stage 3: Extract ALL balance-keyword + number pairs
+    // Only captures the immediate amount value after each keyword
+    // Expanded keyword list to cover common certificate terminology
+    const balanceKeywordPattern = /(?:arrears|balance|owing|amount|outstanding|due|assessment|levy|contribution|fee)[:\s]+(?:\$)?([\d,]+(?:\.\d{1,2})?)/g;
+    const keywordAmounts: number[] = [];
+    
+    const keywordMatches = [...normalized.matchAll(balanceKeywordPattern)];
+    for (const match of keywordMatches) {
+      const amount = parseFloat(match[1].replace(/,/g, ''));
+      if (!isNaN(amount)) keywordAmounts.push(amount);
+    }
+    
+    // If we found any keyword-associated amounts:
+    // - Any non-zero = NOT confirmed none
+    // - All zeros = confirmed none
+    if (keywordAmounts.length > 0) {
+      if (keywordAmounts.some(a => a > 0)) return false;
+      if (keywordAmounts.every(a => a === 0)) return true;
+    }
+    
+    // Stage 4: Curated zero-confirmation phrases (no numeric parsing needed)
+    const confirmedNonePhrases = [
+      'none outstanding',
+      'nil outstanding',
+      'zero outstanding',
+      'zero balance',
+      'no arrears',
+      'no outstanding arrears',
+      'arrears outstanding: nil',
+      'arrears outstanding: none',
+      'arrears: nil',
+      'arrears: none',
+      'balance: nil',
+      'balance: none',
+      'not in default',
+      'in good standing',
+      'no outstanding judgements',
+      'no outstanding judgments',
+      'no judgements',
+      'no judgments',
+      'judgements: nil',
+      'judgments: nil',
+      'judgements: none',
+      'judgments: none',
+      'no litigation',
+      'no current litigation',
+      'litigation: nil',
+      'litigation: none',
+      'no legal proceedings',
+      'no proceedings',
+      'no special assessment',
+      'no special assessments',
+      'no assessments',
+      'assessment: nil',
+      'assessments: nil',
+      'assessment: none',
+      'assessments: none',
+      'no claims',
+      'no potential claims',
+      'claims: nil',
+      'claims: none',
+      'owner is not in default',
+      'vendor is not in default',
+      'unit owner is not in default',
+      'corporation is not party to',
+      'not party to any',
+    ];
+    
+    return confirmedNonePhrases.some(phrase => normalized.includes(phrase));
+  };
+  
+  // Helper to check if value indicates unknown/not available/ambiguous
+  const isUnknownValue = (val: string | null): boolean => {
+    if (val === null) return true;
+    const normalized = val.trim().toLowerCase();
+    // Exact matches for ambiguous/unknown values
+    const unknownExact = [
+      '', 'n/a', 'not applicable', 'not available', 'unavailable', 'unknown',
+      '-', '--', '—', 'none', 'no', 'none reported', 'not indicated', 
+      'not disclosed', 'information pending', 'see attached', 'refer to attached',
+      'not provided', 'not supplied', 'tbd', 'to be determined', 'pending',
+      'pending details', 'awaiting', 'awaiting information', 'contact management',
+      'ask management', 'verify with management', 'unconfirmed', 'unclear',
+      'not stated', 'not specified', 'missing', 'data not available',
+    ];
+    if (unknownExact.includes(normalized)) return true;
+    // Phrases that indicate unknown when contained
+    const unknownPhrases = [
+      'not provided', 'not supplied', 'to be determined', 'tbd',
+      'pending', 'awaiting', 'contact management', 'verify with',
+      'not stated', 'not specified', 'refer to', 'see attached',
+    ];
+    return unknownPhrases.some(phrase => normalized.includes(phrase));
+  };
+  
+  // Helper to check if value has meaningful content (positive finding)
+  const hasMeaningfulValue = (val: string | null): boolean => {
+    return val !== null && !isConfirmedNone(val) && !isUnknownValue(val);
+  };
+  
+  // Extract key data points
+  const corporation = analysis.corporation || 'the Corporation';
+  const address = analysis.address || 'the subject property';
+  const unit = analysis.unit || '';
+  const parking = analysis.parking || '';
+  const locker = analysis.locker || '';
+  const commonInterest = analysis.common_interest || '';
+  
+  // Common expenses
+  const monthlyAmount = getItem('common_expenses', 'monthly_amount') || getItem('commonExpenses', 'monthly_amount');
+  const arrears = getItem('common_expenses', 'unit_arrears') || getItem('commonExpenses', 'unit_arrears');
+  const pendingIncrease = getItem('common_expenses', 'pending_increases') || getItem('commonExpenses', 'pending_increases');
+  
+  // Reserve fund
+  const reserveBalance = getItem('reserve_fund', 'reserve_balance') || getItem('reserveFund', 'reserve_balance');
+  const lastStudyDate = getItem('reserve_fund', 'last_study_date') || getItem('reserveFund', 'last_study_date');
+  const nextStudyDate = getItem('reserve_fund', 'next_study_date') || getItem('reserveFund', 'next_study_date');
+  const reservePerUnit = getItem('reserve_fund', 'reserve_per_unit') || getItem('reserveFund', 'reserve_per_unit');
+  const contributionTrend = getItem('reserve_fund', 'contribution_trend') || getItem('reserveFund', 'contribution_trend');
+  
+  // Legal proceedings
+  const litigationDetails = getItem('legal_proceedings', 'current_litigation') || getItem('legalProceedings', 'current_litigation');
+  const potentialClaims = getItem('legal_proceedings', 'potential_claims') || getItem('legalProceedings', 'potential_claims');
+  const judgements = getItem('legal_proceedings', 'outstanding_judgements') || getItem('legalProceedings', 'outstanding_judgements');
+  
+  // Special assessments
+  const specialAssessments = getItem('special_assessments', 'current_assessments') || getItem('specialAssessments', 'current_assessments');
+  const plannedAssessments = getItem('special_assessments', 'planned_assessments') || getItem('specialAssessments', 'planned_assessments');
+  
+  // Determine opening statement based on risk rating and issues
+  const highIssues = issues.filter(i => i.severity === 'high' || i.severity === 'error');
+  const warningIssues = issues.filter(i => i.severity === 'warning');
+  
+  let openingStatement = '';
+  if (rating === 'GREEN' && highIssues.length === 0) {
+    openingStatement = 'There are no issues or concerns with the status certificate.';
+  } else if (rating === 'YELLOW' || warningIssues.length > 0) {
+    openingStatement = 'There are some items that require your attention, as outlined below.';
+  } else {
+    openingStatement = 'There are significant concerns with this status certificate that require your immediate attention.';
+  }
+  
+  // Build legal description
+  let legalDescription = `Unit ${unit || '[unit number]'}`;
+  if (locker) legalDescription += `, ${locker} (locker)`;
+  if (parking) legalDescription += `, ${parking} (parking)`;
+  legalDescription += `, ${corporation}`;
+  
+  // Build the letter
+  let letter = `I have now had the chance to review the status certificate received from ${corporation}. ${openingStatement}
 
-We have completed our review of the Status Certificate for ${analysis.corporation || 'the corporation'} located at ${analysis.address || 'the subject property'}.
+I would just draw your attention to the following:
 
-SUMMARY
-The certificate dated ${analysis.certificate_date || 'N/A'} (expiring ${analysis.expiry_date || 'N/A'}) indicates ${riskText}.
+The Corporation has confirmed that the legal description of the property is ${legalDescription}. The municipal address for the property is ${address}.
 
-KEY FINDINGS
-${issues || '• No significant issues identified'}
+Please ensure that the legal description of the unit in the Agreement of Purchase and Sale matches the one in the status certificate.
+`;
 
-EXTRACTED DATA SUMMARY
-• Total items reviewed: ${total}
-• Items verified: ${summary.verified}
-• Items requiring attention: ${summary.warnings}
-• Information not found: ${summary.missing}
+  // Payment status
+  if (hasMeaningfulValue(arrears)) {
+    // Has real arrears amount
+    letter += `
+The Status Certificate indicates that there are outstanding arrears of ${arrears} on this unit. Please ensure these are addressed prior to closing.
+`;
+  } else if (isConfirmedNone(arrears)) {
+    // Explicitly confirmed no arrears ($0, "none", etc.)
+    letter += `
+The Status Certificate provides that the vendor is not in default on the payment of the common expenses.
+`;
+  } else {
+    // Unknown/N/A or null - cannot confirm status
+    letter += `
+Please verify with the Corporation whether there are any outstanding common expense arrears on this unit.
+`;
+  }
 
-Please contact us if you have any questions about these findings.
+  // Monthly amount
+  if (monthlyAmount) {
+    letter += `
+The monthly common expenses amount for the unit is ${monthlyAmount}. Please note that you will need to provide a pre-authorized payment form to the Corporation after closing.
+
+If any of the utilities are separately metered, you will have to contact the service providers prior to closing to set up your accounts.
+`;
+  }
+
+  // Pending fee increases
+  if (hasMeaningfulValue(pendingIncrease)) {
+    letter += `
+Please note: ${pendingIncrease}
+`;
+  } else {
+    letter += `
+The common expenses may increase at the start of the next fiscal year due to usual budgetary adjustments.
+`;
+  }
+
+  // Reserve fund
+  if (reserveBalance) {
+    letter += `
+The Corporation's reserve fund balance is ${reserveBalance}.
+`;
+  }
+
+  // Reserve fund study
+  if (lastStudyDate || nextStudyDate) {
+    letter += `
+The condominium corporation is required by law to complete a Reserve Fund Study regularly.`;
+    if (lastStudyDate) {
+      letter += ` According to the Status Certificate, the latest Reserve Fund Study was completed ${lastStudyDate}.`;
+    }
+    if (nextStudyDate) {
+      letter += ` The next Reserve Fund Study should be completed ${nextStudyDate}.`;
+    }
+    letter += ` The contributions to the reserve fund (and thus, by extension, the common expenses) may increase based on the recommendations of the reserve fund study.
+`;
+  }
+
+  // Reserve fund adequacy disclaimer
+  letter += `
+I am not in a position to comment on the adequacy of the reserve fund. However, I would recommend that you have the Budget Statement reviewed by your financial advisor, if necessary.
+`;
+
+  // Contribution trends
+  if (hasMeaningfulValue(contributionTrend)) {
+    letter += `
+Based on available information, ${contributionTrend}
+`;
+  }
+  
+  // Reserve per unit
+  if (reservePerUnit) {
+    letter += `
+The reserve fund contribution per unit is approximately ${reservePerUnit}.
+`;
+  }
+
+  // Special assessments
+  if (hasMeaningfulValue(specialAssessments)) {
+    letter += `
+IMPORTANT: The Corporation has levied a special assessment: ${specialAssessments}. Please ensure this is addressed in the transaction.
+`;
+  }
+
+  if (hasMeaningfulValue(plannedAssessments)) {
+    letter += `
+The Corporation has indicated planned assessments: ${plannedAssessments}
+`;
+  }
+
+  // Judgements
+  if (hasMeaningfulValue(judgements)) {
+    letter += `
+Outstanding judgements: ${judgements}
+`;
+  } else if (isConfirmedNone(judgements)) {
+    letter += `
+There are no outstanding judgements against the Corporation.
+`;
+  }
+
+  // Litigation
+  if (hasMeaningfulValue(litigationDetails)) {
+    letter += `
+The corporation is party to legal proceedings: ${litigationDetails}
+`;
+  } else if (isConfirmedNone(litigationDetails)) {
+    letter += `
+The corporation is not party to any proceedings before a court of law, an arbitrator or an administrative tribunal.`;
+  }
+
+  // Potential claims
+  if (hasMeaningfulValue(potentialClaims)) {
+    letter += ` However, the corporation has given notice of potential claims: ${potentialClaims}
+`;
+  } else {
+    letter += `
+`;
+  }
+
+  // Key issues from analysis
+  if (highIssues.length > 0) {
+    letter += `
+ITEMS REQUIRING IMMEDIATE ATTENTION:
+`;
+    highIssues.forEach(issue => {
+      letter += `• ${issue.title}: ${issue.finding}
+`;
+    });
+  }
+
+  if (warningIssues.length > 0) {
+    letter += `
+ITEMS TO NOTE:
+`;
+    warningIssues.forEach(issue => {
+      letter += `• ${issue.title}: ${issue.finding}
+`;
+    });
+  }
+
+  // Standard closing
+  letter += `
+The unit is not subject to agreements relating to additions, alterations or improvements made to the common elements. However, please note that the corporation has not carried out an inspection. It is your responsibility to ensure that the seller has not made any changes to the common elements or the unit without the authorization of the condominium.
+
+Kindly review the Condominium's declaration and by-law/rules as you will be required to comply with the same.
+
+Please contact me if you have any questions about these findings.
 
 Best regards,
 [Your Name]`;
+
+  return letter;
 };
 
 interface PropertyInfo {
