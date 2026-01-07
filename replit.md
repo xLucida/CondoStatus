@@ -99,6 +99,13 @@ types/                 # TypeScript type definitions
 - **Client Letter Generator**: One-click generation of client-ready summary letters
 
 ## Recent Changes
+- January 7, 2026: Updated hero H1 to "Ontario status certificate review in under 2 minutes."
+- January 7, 2026: Unified all CTAs to "Analyze Status Certificate" (header, hero, bottom)
+- January 7, 2026: Updated trust bullets to "Page citations · Auto-delete controls · No training on your data"
+- January 7, 2026: Added Ontario format line below subhead
+- January 7, 2026: Added "not legal advice" disclaimer under risk detection section
+- January 7, 2026: Changed "SOC 2-ready" to "Security-first" to avoid unverified claims
+- January 7, 2026: Improved feature card readability with larger text and better contrast
 - January 7, 2026: Landing page improvements - removed dark trust bar, added inline trust line under hero CTA
 - January 7, 2026: De-duplicated CTAs - header button scrolls to hero on homepage
 - January 7, 2026: Punched up hero preview with "Critical" examples (special assessment $18,500, litigation) in red
