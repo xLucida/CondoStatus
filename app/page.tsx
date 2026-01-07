@@ -1,304 +1,296 @@
-'use client';
+import Link from 'next/link';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-
-export default function HomePage() {
-  const router = useRouter();
-  const [file, setFile] = useState<File | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [dragOver, setDragOver] = useState(false);
-
-  const handleFile = useCallback((f: File) => {
-    if (f.type !== 'application/pdf') {
-      setError('Please upload a PDF file');
-      return;
-    }
-    if (f.size > 20 * 1024 * 1024) {
-      setError('File too large (max 20MB)');
-      return;
-    }
-    setFile(f);
-    setError(null);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const f = e.dataTransfer.files[0];
-    if (f) handleFile(f);
-  }, [handleFile]);
-
-  const handleAnalyze = async () => {
-    if (!file) return;
-    
-    setAnalyzing(true);
-    setProgress(10);
-    setError(null);
-
-    try {
-      // Read file as base64
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result.split(',')[1]);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      setProgress(30);
-
-      // Send to analyze API
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          file: base64, 
-          fileName: file.name,
-          fileType: file.type,
-        }),
-      });
-
-      setProgress(70);
-
-      const data = await response.json();
-
-      if (!data.success) {
-        const message = data.error || 'Analysis failed';
-        setError(message);
-        setAnalyzing(false);
-        return;
-      }
-
-      setProgress(100);
-
-      // Store in sessionStorage for report page
-      sessionStorage.setItem('currentAnalysis', JSON.stringify(data));
-      sessionStorage.setItem('currentFile', file.name);
-      sessionStorage.setItem('currentPdfUrl', URL.createObjectURL(file));
-
-      // Navigate to report
-      router.push(`/report/${data.reportId}`);
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Analysis failed');
-      setAnalyzing(false);
-    }
-  };
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">CA</span>
-            </div>
-            <span className="font-semibold text-gray-900">CertAnalyzer</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a 
+    <div className="min-h-screen bg-white">
+      <Navigation />
+      
+      {/* Hero Section */}
+      <section className="max-w-6xl mx-auto px-4 py-20">
+        <div className="max-w-3xl mx-auto text-center">
+          <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-6">
+            Catch the surprises
+            <br />
+            <span className="text-blue-600">before you firm up.</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Instantly surface arrears, litigation, reserve fund issues, insurance gaps, 
+            and special-assessment risk from Ontario condo status certificates.
+          </p>
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <Link 
+              href="/analyze"
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Analyze a Certificate
+            </Link>
+            <Link 
               href="/demo"
-              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              className="border border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-medium hover:bg-gray-50 transition-colors"
             >
               View Demo Report
-            </a>
-            <a 
-              href="#how-it-works"
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              How it works →
-            </a>
+            </Link>
           </div>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <main className="max-w-3xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Review Status Certificates
-            <br />
-            <span className="text-blue-600">in Minutes, Not Hours</span>
-          </h1>
-          <p className="text-lg text-gray-600 max-w-xl mx-auto">
-            AI-powered extraction and analysis of Ontario condo status certificates. 
-            Upload a PDF, get a detailed breakdown in under 2 minutes.
+          <p className="text-sm text-gray-500">
+            Privacy-first handling of sensitive documents. Your data is never used for training.
           </p>
         </div>
+      </section>
 
-        {/* Upload Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 relative">
-          {!analyzing ? (
-            <>
-              {/* Dropzone */}
-              <div
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={handleDrop}
-                className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
-                  dragOver 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : file 
-                      ? 'border-emerald-300 bg-emerald-50' 
-                      : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                {file ? (
-                  <div>
-                    <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <p className="font-medium text-gray-900">{file.name}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                    <button
-                      onClick={() => setFile(null)}
-                      className="mt-3 text-sm text-gray-500 hover:text-gray-700"
-                    >
-                      Choose different file
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                    </div>
-                    <p className="font-medium text-gray-900">
-                      Drop your status certificate here
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      or click to browse (PDF only, max 20MB)
-                    </p>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </div>
-
-              {/* Error */}
-              {error && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                  {error}
+      {/* Value Props */}
+      <section className="bg-gray-50 py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            Minutes, not hours
+          </h2>
+          <div className="grid md:grid-cols-5 gap-8">
+            {[
+              { title: 'Instant executive summary', desc: 'of what matters' },
+              { title: 'Red flags + severity', desc: 'so you know where to dig' },
+              { title: 'Key numbers extracted', desc: 'fees, reserve fund, insurance, arrears' },
+              { title: 'Missing disclosure detection', desc: 'to avoid blind spots' },
+              { title: 'Exportable report', desc: 'share with clients and team' },
+            ].map((item) => (
+              <div key={item.title} className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-              )}
-
-              {/* Analyze Button */}
-              <button
-                onClick={handleAnalyze}
-                disabled={!file}
-                className={`w-full mt-6 py-3 px-4 rounded-lg font-medium transition-colors ${
-                  file
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                Analyze Certificate
-              </button>
-              
-              {/* Demo Link */}
-              <div className="mt-4 text-center">
-                <a href="/demo" className="text-sm text-blue-600 hover:text-blue-700">
-                  See an example report first →
-                </a>
+                <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
+                <p className="text-sm text-gray-500">{item.desc}</p>
               </div>
-            </>
-          ) : (
-            /* Progress State */
-            <div className="py-8 text-center">
-              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Analyzing Certificate...
-              </h3>
-              <p className="text-sm text-gray-500 mb-6">
-                {progress < 30 && 'Reading document...'}
-                {progress >= 30 && progress < 70 && 'Extracting data with AI...'}
-                {progress >= 70 && 'Generating report...'}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Red Flags Section */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Automatic risk detection
+              </h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Our AI scans for the issues that matter most, surfacing concerns before they become surprises.
               </p>
-              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-blue-600 rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
+              <ul className="space-y-4">
+                {[
+                  'Arrears and collections risk',
+                  'Legal actions, liens, and chargebacks',
+                  'Insurance gaps and deductibles',
+                  'Reserve fund concerns and major capex',
+                  'Special assessments (current + hinted)',
+                  'Budget variance and fee increases',
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-3">
+                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span className="text-gray-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-8">
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded">HIGH</span>
+                    <span className="font-medium text-gray-900">Special Assessment</span>
+                  </div>
+                  <p className="text-sm text-gray-600">$15,000 special assessment approved for roof replacement, due within 12 months.</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded">MEDIUM</span>
+                    <span className="font-medium text-gray-900">Reserve Fund</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Reserve fund at 68% of recommended level. Study shows shortfall by 2027.</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">LOW</span>
+                    <span className="font-medium text-gray-900">Insurance</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Standard deductible of $25,000. No claims in past 3 years.</p>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-3 gap-6 mt-12" id="how-it-works">
-          {[
-            { icon: '⚡', title: 'Fast', desc: 'Results in under 2 minutes' },
-            { icon: '🎯', title: 'Accurate', desc: 'AI extracts 28+ key data points' },
-            { icon: '🛡️', title: 'Secure', desc: 'Documents not stored' },
-          ].map((feature) => (
-            <div key={feature.title} className="text-center">
-              <div className="text-2xl mb-2">{feature.icon}</div>
-              <h3 className="font-medium text-gray-900">{feature.title}</h3>
-              <p className="text-sm text-gray-500">{feature.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* What You Get */}
-        <div className="mt-16 bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">What you get:</h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-500">✓</span>
-              <span>Common expenses & arrears</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-500">✓</span>
-              <span>Reserve fund balance & health</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-500">✓</span>
-              <span>Special assessments</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-500">✓</span>
-              <span>Insurance deductibles</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-500">✓</span>
-              <span>Legal proceedings</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-500">✓</span>
-              <span>Risk assessment (RED/YELLOW/GREEN)</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-500">✓</span>
-              <span>Side-by-side PDF viewer</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-500">✓</span>
-              <span>Client letter generator</span>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Disclaimer */}
-        <p className="text-center text-xs text-gray-400 mt-12">
-          This tool assists with information extraction only. It does not constitute legal advice. 
-          Always verify extracted data against the source document.
-        </p>
-      </main>
+      {/* Who it's for */}
+      <section className="bg-gray-50 py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            Built for real estate workflows
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-xl p-8 border border-gray-200">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Buyers & Investors</h3>
+              <p className="text-gray-600">Know what you're buying before you waive conditions. Get clear visibility into building health and financial risks.</p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-gray-200">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Agents</h3>
+              <p className="text-gray-600">Faster guidance for clients, fewer surprises, smoother closes. Stand out with professional due diligence support.</p>
+            </div>
+            <div className="bg-white rounded-xl p-8 border border-gray-200">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Lawyers</h3>
+              <p className="text-gray-600">Structured extraction and issue spotting to speed review. You stay in control with AI handling the heavy lifting.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Standardized Output */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Consistent, repeatable outputs
+            </h2>
+            <p className="text-lg text-gray-600">
+              Unlike ad-hoc AI prompting, CertAnalyzer uses a consistent schema every time. 
+              Same sections, same metrics, same definitions—making properties comparable across deals.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">What you get</h3>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">✓</span>
+                  <span className="text-gray-700">One-page buyer-friendly summary</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">✓</span>
+                  <span className="text-gray-700">Lawyer-grade detail and references</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">✓</span>
+                  <span className="text-gray-700">Exportable PDF report</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">✓</span>
+                  <span className="text-gray-700">Shareable link for clients</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">✓</span>
+                  <span className="text-gray-700">Questions to ask the property manager</span>
+                </li>
+              </ul>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">"What's missing" detection</h3>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-500 mt-0.5">⚠</span>
+                  <span className="text-gray-700">Flags items not disclosed in certificate</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-500 mt-0.5">⚠</span>
+                  <span className="text-gray-700">Marks unclear or ambiguous sections</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-500 mt-0.5">⚠</span>
+                  <span className="text-gray-700">Checklist: "We reviewed A, B, C; could not verify D"</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-yellow-500 mt-0.5">⚠</span>
+                  <span className="text-gray-700">Suggests follow-up questions</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Security/Privacy */}
+      <section className="bg-gray-900 text-white py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-6">
+              Your documents are sensitive. We treat them that way.
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8 mt-12">
+              <div>
+                <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold mb-2">No training on your data</h3>
+                <p className="text-gray-400 text-sm">Your documents are never used to train AI models.</p>
+              </div>
+              <div>
+                <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold mb-2">Data retention controls</h3>
+                <p className="text-gray-400 text-sm">Delete immediately or set retention period.</p>
+              </div>
+              <div>
+                <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold mb-2">Enterprise-grade security</h3>
+                <p className="text-gray-400 text-sm">Encrypted in transit and at rest.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Ready to speed up your review process?
+          </h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Upload a status certificate and see results in minutes.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <Link 
+              href="/analyze"
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Get Started Free
+            </Link>
+            <Link 
+              href="/pricing"
+              className="text-gray-600 hover:text-gray-900 font-medium"
+            >
+              View Pricing →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }
