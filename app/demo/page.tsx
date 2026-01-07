@@ -203,7 +203,20 @@ const CollapsibleSection = ({ title, icon, children, defaultOpen = true, itemCou
   );
 };
 
-const ItemRow = ({ item }: { item: any }) => (
+const PageBadge = ({ page, onClick }: { page: number; onClick?: () => void }) => (
+  <span 
+    onClick={onClick}
+    className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded ${onClick ? 'hover:bg-blue-100 cursor-pointer transition-colors' : ''}`}
+    title={`Source: Page ${page}`}
+  >
+    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+    p.{page}
+  </span>
+);
+
+const ItemRow = ({ item, onPageClick }: { item: any; onPageClick?: (page: number) => void }) => (
   <div className={`flex items-start gap-3 py-3 px-3 -mx-3 rounded-lg hover:bg-gray-50 ${item.status === 'warning' || item.status === 'error' ? 'bg-amber-50/50' : ''}`}>
     <StatusIcon status={item.status} />
     <div className="flex-1 min-w-0">
@@ -216,10 +229,13 @@ const ItemRow = ({ item }: { item: any }) => (
         <div className="mt-1 text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded inline-block">{item.reason}</div>
       )}
     </div>
+    {item.page && (
+      <PageBadge page={item.page} onClick={onPageClick ? () => onPageClick(item.page) : undefined} />
+    )}
   </div>
 );
 
-const IssueCard = ({ issue }: { issue: any }) => {
+const IssueCard = ({ issue, onPageClick }: { issue: any; onPageClick?: (page: number) => void }) => {
   const [expanded, setExpanded] = useState(false);
   const borderColor: Record<string, string> = { high: 'border-red-200 bg-red-50', warning: 'border-amber-200 bg-amber-50', low: 'border-blue-200 bg-blue-50' };
   return (
@@ -227,7 +243,20 @@ const IssueCard = ({ issue }: { issue: any }) => {
       <button onClick={() => setExpanded(!expanded)} className="w-full p-4 text-left flex items-start gap-3">
         <SeverityBadge severity={issue.severity} />
         <div className="flex-1">
-          <h4 className="font-medium text-gray-900">{issue.title}</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-medium text-gray-900">{issue.title}</h4>
+            {issue.page && (
+              <span 
+                onClick={(e) => { e.stopPropagation(); onPageClick?.(issue.page); }}
+                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded cursor-pointer transition-colors"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                p.{issue.page}
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-gray-600 line-clamp-2">{issue.finding}</p>
         </div>
         <svg className={`w-5 h-5 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -250,6 +279,17 @@ const IssueCard = ({ issue }: { issue: any }) => {
             <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Recommendation</div>
             <p className="text-sm text-gray-700">{issue.recommendation}</p>
           </div>
+          {issue.quote && (
+            <div>
+              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Source Quote</div>
+              <blockquote className="text-sm text-gray-600 italic border-l-2 border-gray-300 pl-3">&ldquo;{issue.quote}&rdquo;</blockquote>
+            </div>
+          )}
+          {issue.page && (
+            <div className="text-xs text-gray-500">
+              Found on page {issue.page} of the certificate
+            </div>
+          )}
         </div>
       )}
     </div>
