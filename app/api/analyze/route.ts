@@ -5,6 +5,7 @@ import { parsePDF } from '@/lib/pdf-parser';
 export const maxDuration = 60; // Allow up to 60 seconds for analysis
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 5;
+const MIN_EXTRACTED_TEXT_LENGTH = 100;
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 function getClientIp(request: NextRequest) {
@@ -90,14 +91,15 @@ export async function POST(request: NextRequest) {
     const pdfData = await parsePDF(pdfBuffer);
     const extractedText = pdfData.text;
 
-    if (!extractedText || extractedText.length < 100) {
+    if (!extractedText || extractedText.length < MIN_EXTRACTED_TEXT_LENGTH) {
       return NextResponse.json(
         {
           success: false,
           error:
-            'We could not extract readable text from this PDF. If it is a scanned document, run OCR or export a text-based PDF and try again.',
+            'This PDF appears to be scanned or image-based. We could not extract readable text. Please run OCR or rescan/export a text-based PDF and try again.',
+          errorCode: 'low_text',
         },
-        { status: 400 }
+        { status: 422 }
       );
     }
 
