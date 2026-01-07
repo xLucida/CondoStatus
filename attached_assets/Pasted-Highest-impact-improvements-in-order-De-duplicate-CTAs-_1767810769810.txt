@@ -1,0 +1,58 @@
+Highest-impact improvements (in order)
+De-duplicate CTAs: top-right “Analyze Certificate” and hero “Analyze a Certificate” compete. Make them identical and have the header button scroll to the upload/analyze module.
+
+
+Move the black trust bar (SOC2 / encryption / contact) into a quieter place. It steals attention above the fold. Put security + contact in footer, and keep 1 trust line under the CTA.
+
+
+Make the hero preview show a “real” punch: right now it’s clean but a bit mild. Include one “Critical” example (special assessment, litigation, reserve shortfall) to instantly communicate value.
+
+
+
+Logo row contrast: currently so light it reads like placeholder. Either increase contrast or remove until you have permission + real proof.
+
+
+Feature strip (“Minutes, not hours”): consider 4 tiles instead of 5 and increase type size. Current microcopy is hard to read.
+
+
+Add a 3-step “How it works” microsection directly after hero:
+
+
+Upload PDF → Get red flags + key numbers → Export/share
+
+
+Add explicit “page citations” as a feature (this is a major trust driver for legal users).
+
+
+Add retention controls (even as copy): “Auto-delete after X days” / “Delete instantly.” This sells.
+
+
+Add audience toggle (later): Lawyer / Agent / Buyer, each with 2–3 tailored bullets. Conversion lift.
+
+
+
+Copy tweaks (small but meaningful)
+Subhead is good, but you can tighten:
+
+
+Current: “Turn messy condo status certificates into clear, standardized risk reports…”
+
+
+Tighter: “Upload a status certificate. Get a standardized risk report with red flags, key numbers, and page citations in under 2 minutes.”
+
+
+“before you firm up” is good. “firm up” → “go firm” might read more natural to some Ontario users:
+
+
+“Catch the surprises before you go firm.”
+
+
+Safer replacements if you’re pre-certification / pre-customer:
+“Security-first (SOC 2 controls aligned)” or “SOC 2-ready” (only if you actually have mapped controls)
+
+
+“Designed with Ontario real estate workflows”
+
+
+Replace logos with: “Used by professionals across Ontario” (no names)
+
