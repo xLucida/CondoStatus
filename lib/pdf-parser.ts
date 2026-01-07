@@ -1,4 +1,7 @@
 import pdf from 'pdf-parse';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { createCanvas, Canvas, CanvasRenderingContext2D } from 'canvas';
+import Tesseract from 'tesseract.js';
 
 export interface PDFParseResult {
   text: string;
@@ -9,43 +12,120 @@ export interface PDFParseResult {
     author?: string;
     creator?: string;
   };
+  usedOCR?: boolean;
 }
 
-/**
- * Parse a PDF file and extract text content
- */
+const MIN_TEXT_LENGTH = 100;
+const OCR_SCALE = 2.0;
+
+class NodeCanvasFactory {
+  create(width: number, height: number) {
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext('2d');
+    return { canvas, context };
+  }
+
+  reset(canvasAndContext: { canvas: Canvas; context: CanvasRenderingContext2D }, width: number, height: number) {
+    canvasAndContext.canvas.width = width;
+    canvasAndContext.canvas.height = height;
+  }
+
+  destroy(canvasAndContext: { canvas: Canvas; context: CanvasRenderingContext2D }) {
+    canvasAndContext.canvas.width = 0;
+    canvasAndContext.canvas.height = 0;
+  }
+}
+
 export async function parsePDF(buffer: Buffer): Promise<PDFParseResult> {
   try {
     const data = await pdf(buffer, {
-      // Custom page renderer to get page-by-page text
       pagerender: renderPage,
     });
 
-    // Split text by page markers we add during rendering
     const pages = data.text
       .split('---PAGE_BREAK---')
       .map((p: string) => p.trim())
       .filter((p: string) => p.length > 0);
 
-    return {
-      text: data.text.replace(/---PAGE_BREAK---/g, '\n\n'),
-      pageCount: data.numpages,
-      pages,
-      metadata: {
-        title: data.info?.Title,
-        author: data.info?.Author,
-        creator: data.info?.Creator,
-      },
-    };
+    const cleanedText = data.text.replace(/---PAGE_BREAK---/g, '\n\n').trim();
+
+    if (cleanedText.length >= MIN_TEXT_LENGTH) {
+      return {
+        text: cleanedText,
+        pageCount: data.numpages,
+        pages,
+        metadata: {
+          title: data.info?.Title,
+          author: data.info?.Author,
+          creator: data.info?.Creator,
+        },
+        usedOCR: false,
+      };
+    }
+
+    console.log('Text extraction insufficient, falling back to OCR...');
+    return await parsePDFWithOCR(buffer);
   } catch (error) {
     console.error('PDF parsing error:', error);
-    throw new Error(`Failed to parse PDF: ${error}`);
+    console.log('Falling back to OCR due to parse error...');
+    try {
+      return await parsePDFWithOCR(buffer);
+    } catch (ocrError) {
+      console.error('OCR also failed:', ocrError);
+      throw new Error(`Failed to parse PDF: ${error}`);
+    }
   }
 }
 
-/**
- * Custom page renderer that preserves page boundaries
- */
+async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
+  const uint8Array = new Uint8Array(buffer);
+  const loadingTask = pdfjsLib.getDocument({
+    data: uint8Array,
+    useSystemFonts: true,
+  });
+  const pdfDoc = await loadingTask.promise;
+  const numPages = pdfDoc.numPages;
+
+  const pages: string[] = [];
+  const worker = await Tesseract.createWorker('eng');
+
+  try {
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      console.log(`OCR processing page ${pageNum}/${numPages}...`);
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale: OCR_SCALE });
+
+      const canvasFactory = new NodeCanvasFactory();
+      const { canvas, context } = canvasFactory.create(
+        Math.floor(viewport.width),
+        Math.floor(viewport.height)
+      );
+
+      const renderContext = {
+        canvasContext: context,
+        viewport,
+      };
+      await page.render(renderContext as any).promise;
+
+      const imageBuffer = canvas.toBuffer('image/png');
+      const { data: { text } } = await worker.recognize(imageBuffer);
+      pages.push(text.trim());
+    }
+  } finally {
+    await worker.terminate();
+  }
+
+  const fullText = pages.join('\n\n');
+
+  return {
+    text: fullText,
+    pageCount: numPages,
+    pages,
+    metadata: {},
+    usedOCR: true,
+  };
+}
+
 function renderPage(pageData: any): Promise<string> {
   return pageData.getTextContent().then((textContent: any) => {
     let lastY: number | null = null;
@@ -63,9 +143,6 @@ function renderPage(pageData: any): Promise<string> {
   });
 }
 
-/**
- * Find which page contains a specific quote
- */
 export function findPageForQuote(pages: string[], quote: string): number | null {
   if (!quote) return null;
   
@@ -74,11 +151,10 @@ export function findPageForQuote(pages: string[], quote: string): number | null 
   for (let i = 0; i < pages.length; i++) {
     const normalizedPage = pages[i].toLowerCase();
     if (normalizedPage.includes(normalizedQuote)) {
-      return i + 1; // 1-indexed pages
+      return i + 1;
     }
   }
   
-  // Try partial matching if exact match fails
   const words = normalizedQuote.split(' ').filter(w => w.length > 4);
   if (words.length >= 3) {
     for (let i = 0; i < pages.length; i++) {
@@ -93,9 +169,6 @@ export function findPageForQuote(pages: string[], quote: string): number | null 
   return null;
 }
 
-/**
- * Extract text around a specific position for context
- */
 export function extractContext(text: string, searchTerm: string, contextLength: number = 200): string | null {
   const lowerText = text.toLowerCase();
   const lowerSearch = searchTerm.toLowerCase();

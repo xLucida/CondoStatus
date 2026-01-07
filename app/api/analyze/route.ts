@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
       fileName,
       extractedTextLength: extractedText.length,
       pageCount: pdfData.pageCount,
+      usedOCR: pdfData.usedOCR || false,
     });
 
   } catch (error) {
