@@ -8,7 +8,8 @@ Turn messy condo status certificates into a clear, standardized risk report in m
 
 ## Project Architecture
 - **Framework**: Next.js 14 with TypeScript
-- **Styling**: TailwindCSS
+- **Styling**: TailwindCSS with custom design tokens
+- **Fonts**: Source Serif 4 (headings), Inter (body)
 - **Error Tracking**: Sentry (optional, only enabled if NEXT_PUBLIC_SENTRY_DSN is set)
 - **AI Integration**: OpenAI/Venice for PDF analysis
 
@@ -29,7 +30,7 @@ app/                    # Next.js app router pages
 │   ├── analyze/       # PDF analysis endpoint
 │   └── health/        # Health check endpoint
 components/            # React components
-├── Navigation.tsx     # Site-wide navigation
+├── Navigation.tsx     # Site-wide navigation with trust bar
 ├── Footer.tsx         # Site-wide footer
 ├── PDFViewer.tsx      # PDF viewing component
 ├── Toast.tsx          # Notification component
@@ -62,12 +63,34 @@ types/                 # TypeScript type definitions
 - `/terms` - Terms of service
 - `/demo` - Demo report view
 
-## Design Direction
-"Calm enterprise SaaS" - communicates trust + precision + speed
-- Clean white backgrounds, high contrast text
-- Blue accent color for CTAs and highlights
-- Modern sans-serif typography
-- Lots of whitespace, sharp grid
+## Design System
+
+### Philosophy
+"Premium legal professional" aesthetic - communicates trust, precision, and credibility for lawyers and real estate professionals.
+
+### Color Palette
+- **Navy** (navy-900, navy-950): Primary brand color for headers, footers, trust elements
+- **Slate**: Text and UI elements (slate-400 to slate-700)
+- **Cream** (cream-50, cream-100): Warm backgrounds, accent areas
+- **Brass** (brass-400 to brass-600): Gold accent color for CTAs, badges, emphasis
+
+### Typography
+- **Headings**: Source Serif 4 (serif) - elegant, professional
+- **Body**: Inter (sans-serif) - clean, readable
+- **Sizes**: text-headline (2.5rem), text-title (1.75rem), text-body (1rem)
+
+### Components
+- `.card`: White background, subtle border, refined shadow
+- `.card-elevated`: Cream background with elevated shadow
+- `.btn-primary`: Navy background, cream text
+- `.btn-accent`: Brass/gold background for key CTAs
+- `.badge-info`: Small info badges with cream background
+- `.trust-badge`: Security/compliance indicators
+
+### Layout
+- `.container-wide`: 1200px max, responsive padding
+- `.container-narrow`: 900px max for text-heavy pages
+- `.section-padding`: 80px vertical on desktop, 48px on mobile
 
 ## Report Features
 - **Page Reference Badges**: Each extracted item and issue shows a "p.X" badge indicating the source page in the PDF
@@ -76,6 +99,11 @@ types/                 # TypeScript type definitions
 - **Client Letter Generator**: One-click generation of client-ready summary letters
 
 ## Recent Changes
+- January 7, 2026: Complete design system overhaul with premium legal aesthetic
+- January 7, 2026: Added design tokens: navy/slate/cream/brass colors, Source Serif 4 + Inter fonts
+- January 7, 2026: Redesigned navigation with dark trust bar (SOC 2, encryption badges)
+- January 7, 2026: Updated all marketing pages with new design (landing, pricing, how-it-works, about)
+- January 7, 2026: Redesigned footer with navy background and improved layout
 - January 7, 2026: Added visible page reference badges (p.X format) to all report items and issues
 - January 7, 2026: Page badges are now clickable and navigate to corresponding PDF page
 - January 7, 2026: Built marketing site with landing, pricing, how-it-works, about pages
