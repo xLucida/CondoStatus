@@ -1,0 +1,134 @@
+## Positioning (one sentence)
+
+Turn messy condo status certificates into a **clear, standardized risk report** in minutes so deals close faster and surprises don’t show up after firm conditions.
+
+---
+
+## Best value props to highlight (ranked)
+
+### 1) Speed + clarity
+
+* **“Minutes, not hours.”** Upload → instant executive summary + key numbers.
+* Plain-English explanation of what matters (for buyers/agents) without losing legal precision (for lawyers).
+
+### 2) Risk surfacing (the real “why”)
+
+* Automatic **red flags** and “read-this” callouts:
+
+  * Arrears/collections risk
+  * Legal actions / liens / chargebacks
+  * Insurance gaps / deductibles
+  * Reserve fund concerns / major capex
+  * Litigation / Tarion/warranty notes (if applicable)
+  * Special assessments (current + hinted)
+  * Budget variance / fee increases / deficits
+
+### 3) Standardized output (the moat vs “just ask ChatGPT”)
+
+* A consistent **schema** every time (same sections, same metrics, same definitions).
+* “What’s missing / unclear” detection (e.g., certificate doesn’t state X → mark as unknown).
+* Comparability across properties and deals.
+
+### 4) Decision support artifacts
+
+* **One-page buyer-friendly summary** + **lawyer-grade detail**.
+* Export: **PDF report**, shareable link, and “questions to ask the property manager/condo corp.”
+
+### 5) Fewer mistakes, better defensibility
+
+* Checklist-style coverage: “We reviewed: A, B, C; could not verify: D.”
+* Versioning (if updated certificate arrives) and change highlights.
+
+### 6) Privacy and control (must-have trust signal)
+
+* “Your documents are sensitive. We don’t train on them.”
+* Optional auto-redaction (names, unit numbers) before analysis.
+* Data retention controls (delete immediately / 7 days / 30 days).
+
+---
+
+## High-converting messaging blocks (ready to paste)
+
+### Hero headline options (pick one style)
+
+**Option A (direct):**
+**Understand a status certificate in minutes.**
+Upload a condo status certificate and get a clear risk summary, key numbers, and red flags—formatted for real decisions.
+
+**Option B (risk-first):**
+**Catch the surprises before you firm up.**
+Instantly surface arrears, litigation, reserve fund issues, insurance gaps, and special-assessment risk.
+
+**Option C (workflow-first):**
+**From PDF chaos to a standardized report.**
+Consistent outputs for every deal: summary, red flags, missing info, and a questions-to-ask list.
+
+### 5 bullet value prop set (tight)
+
+* **Instant executive summary** of what matters
+* **Red flags + severity** so you know where to dig
+* **Key numbers extracted** (fees, reserve fund, insurance, arrears indicators)
+* **Missing/unclear disclosure detection** to avoid blind spots
+* **Exportable report** you can share with clients and your team
+
+### Credibility/trust microcopy (short)
+
+* “Built for real estate workflows.”
+* “Consistent, repeatable outputs. No prompt engineering.”
+* “Privacy-first handling of sensitive documents.”
+
+---
+
+## Design style preferences (minimal, professional, modern)
+
+### Recommended direction: “Calm enterprise SaaS”
+
+Goal: communicate *trust + precision + speed* (not “AI novelty”).
+
+**Look & feel**
+
+* White / off-white backgrounds, high contrast text
+* One restrained accent color (used only for CTAs, highlights, severity tags)
+* Lots of whitespace, sharp grid, subtle dividers, soft shadow cards
+
+**Typography**
+
+* Modern sans-serif (clean, not playful)
+* Clear hierarchy: big headline, compact subheads, readable body
+
+**UI components to prioritize**
+
+* Upload box with strong affordance (drag/drop)
+* “What you’ll get” preview card (sample report screenshot)
+* Severity tags: Low / Medium / High (neutral styling, not alarming neon)
+* “Red flags” list with expandable detail
+* “Key figures” tiles (fees, reserve fund, insurance deductible, etc.)
+* “Questions to ask” checklist (copy button)
+
+**Trust cues (above the fold or immediately below)**
+
+* Privacy statement (1 line)
+* Data retention control (1 line)
+* “Not legal advice” disclaimer (kept small, not scary)
+
+**Layout pacing (landing page)**
+
+1. Hero (headline + upload CTA + trust line)
+2. Example output preview (screenshot-style)
+3. Red flags section (the “aha”)
+4. Who it’s for (buyers, agents, lawyers, investors)
+5. Security/privacy
+6. Pricing
+7. FAQ
+
+---
+
+## Short “who it’s for” framing (helps conversion)
+
+* **Buyers/investors:** “Know what you’re buying before you waive conditions.”
+* **Agents:** “Faster guidance for clients, fewer surprises, smoother closes.”
+* **Lawyers:** “Structured extraction + issue spotting to speed review (you stay in control).”
+
+---
+
+If you want a single “best” positioning angle: lead with **risk + speed** (“catch surprises before you firm up”), then back it with **standardized outputs + privacy** (why it’s better than ad hoc AI prompting).
