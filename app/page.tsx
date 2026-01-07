@@ -79,6 +79,7 @@ export default function HomePage() {
       // Store in sessionStorage for report page
       sessionStorage.setItem('currentAnalysis', JSON.stringify(data));
       sessionStorage.setItem('currentFile', file.name);
+      sessionStorage.setItem('currentPdfUrl', URL.createObjectURL(file));
 
       // Navigate to report
       router.push(`/report/${data.reportId}`);

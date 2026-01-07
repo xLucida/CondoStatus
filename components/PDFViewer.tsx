@@ -10,6 +10,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 interface PDFViewerProps {
   reportId: string;
+  pdfUrl?: string | null;
   page: number;
   highlight: string | null;
   darkMode: boolean;
@@ -19,6 +20,7 @@ interface PDFViewerProps {
 
 export default function PDFViewer({
   reportId,
+  pdfUrl: pdfUrlOverride = null,
   page,
   highlight,
   darkMode,
@@ -39,6 +41,13 @@ export default function PDFViewer({
 
   // Fetch PDF URL from API
   useEffect(() => {
+    if (pdfUrlOverride) {
+      setPdfUrl(pdfUrlOverride);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const fetchPdfUrl = async () => {
       try {
         const response = await fetch(`/api/reports/pdf?id=${reportId}`);
@@ -57,7 +66,7 @@ export default function PDFViewer({
     };
 
     fetchPdfUrl();
-  }, [reportId]);
+  }, [pdfUrlOverride, reportId]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);

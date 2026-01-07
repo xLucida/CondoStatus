@@ -268,6 +268,7 @@ export default function ReportPage() {
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
   const [showPDF, setShowPDF] = useState(true);
   const [pdfPage, setPdfPage] = useState(1);
@@ -287,6 +288,7 @@ export default function ReportPage() {
         const data = JSON.parse(cached);
         setAnalysis(data.analysis);
         setFileName(cachedFile || 'Certificate.pdf');
+        setPdfUrl(sessionStorage.getItem('currentPdfUrl'));
       } catch {
         setError('Failed to load report data');
       }
@@ -309,6 +311,15 @@ export default function ReportPage() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, []);
+
+  const exportAnalysis = useCallback(() => {
+    if (!analysis) return;
+    const blob = new Blob([JSON.stringify(analysis, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `analysis-${analysis.corporation || 'report'}.json`;
+    a.click();
+  }, [analysis]);
 
   if (loading) {
     return (
@@ -373,6 +384,9 @@ export default function ReportPage() {
             </button>
             <button onClick={() => setShowLetterModal(true)} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
               📧 Client Letter
+            </button>
+            <button onClick={exportAnalysis} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
+              ⬇️ Export JSON
             </button>
             <button onClick={() => window.print()} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
               🖨️ Print
@@ -491,6 +505,7 @@ export default function ReportPage() {
           <div className="w-1/2 border-l border-gray-200 print:hidden">
             <PDFViewer
               reportId={reportId}
+              pdfUrl={pdfUrl}
               page={pdfPage}
               highlight={pdfHighlight}
               darkMode={false}
