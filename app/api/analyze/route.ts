@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzeStatusCertificate } from '@/lib/claude-analyzer';
+import { analyzeStatusCertificate, AnalyzerError } from '@/lib/claude-analyzer';
 
 export const maxDuration = 60; // Allow up to 60 seconds for analysis
 
@@ -54,19 +54,14 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Analysis error:', error);
-    
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    
+    const errorCode = error instanceof AnalyzerError ? error.code : 'ANALYSIS_FAILED';
+    const errorMessage =
+      error instanceof AnalyzerError ? error.message : 'Unexpected analysis error';
+
+    console.error(`Analysis error [${errorCode}]: ${errorMessage}`);
+
     // Provide helpful error messages
-    if (message.includes('API key')) {
-      return NextResponse.json(
-        { success: false, error: 'API configuration error. Please check VENICE_API_KEY.' },
-        { status: 500 }
-      );
-    }
-    
-    if (message.includes('rate limit')) {
+    if (errorCode === 'RATE_LIMIT') {
       return NextResponse.json(
         { success: false, error: 'Rate limit exceeded. Please try again in a few minutes.' },
         { status: 429 }
@@ -74,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: false, error: `Analysis failed: ${message}` },
+      { success: false, error: 'Analysis failed. Please try again.' },
       { status: 500 }
     );
   }

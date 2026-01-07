@@ -9,6 +9,15 @@ const venice = new OpenAI({
   baseURL: 'https://api.venice.ai/api/v1',
 });
 
+export class AnalyzerError extends Error {
+  code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.code = code;
+  }
+}
+
 const EXTRACTION_PROMPT = `You are a legal document analyzer specializing in Ontario condominium status certificates. Analyze the provided status certificate text and extract ALL relevant information with extreme precision.
 
 Return a JSON object with this exact structure:
@@ -442,21 +451,35 @@ export async function analyzeStatusCertificate(
   pages: string[] = []
 ): Promise<ExtractionResult> {
   // Use Claude Opus 4.5 via Venice API (OpenAI-compatible)
-  const response = await venice.chat.completions.create({
-    model: 'claude-opus-45',  // Claude Opus 4.5 on Venice
-    max_tokens: 8000,
-    messages: [
-      {
-        role: 'user',
-        content: `${EXTRACTION_PROMPT}\n\n--- STATUS CERTIFICATE TEXT ---\n\n${text}`,
-      },
-    ],
-  });
+  let response: Awaited<ReturnType<typeof venice.chat.completions.create>>;
+  try {
+    response = await venice.chat.completions.create({
+      model: 'claude-opus-45',  // Claude Opus 4.5 on Venice
+      max_tokens: 8000,
+      messages: [
+        {
+          role: 'user',
+          content: `${EXTRACTION_PROMPT}\n\n--- STATUS CERTIFICATE TEXT ---\n\n${text}`,
+        },
+      ],
+    });
+  } catch (error) {
+    const status =
+      typeof error === 'object' && error && 'status' in error
+        ? (error as { status?: number }).status
+        : undefined;
+
+    if (status === 429) {
+      throw new AnalyzerError('RATE_LIMIT', 'Rate limit exceeded');
+    }
+
+    throw new AnalyzerError('VENICE_REQUEST_FAILED', 'Venice API request failed');
+  }
 
   // Extract JSON from response (OpenAI format)
   const content = response.choices[0]?.message?.content;
   if (!content) {
-    throw new Error('No response content from Venice API');
+    throw new AnalyzerError('VENICE_EMPTY_RESPONSE', 'No response content from Venice API');
   }
 
   let jsonStr = content;
@@ -467,7 +490,12 @@ export async function analyzeStatusCertificate(
     jsonStr = jsonMatch[1];
   }
 
-  const result: ExtractionResult = JSON.parse(jsonStr);
+  let result: ExtractionResult;
+  try {
+    result = JSON.parse(jsonStr);
+  } catch (error) {
+    throw new AnalyzerError('VENICE_INVALID_JSON', 'Failed to parse analysis response');
+  }
 
   // Add page numbers to items and issues
   if (pages.length > 0) {
