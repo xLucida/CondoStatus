@@ -68,7 +68,10 @@ export default function HomePage() {
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.error || 'Analysis failed');
+        const message = data.error || 'Analysis failed';
+        setError(message);
+        setAnalyzing(false);
+        return;
       }
 
       setProgress(100);
