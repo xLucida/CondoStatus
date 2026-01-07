@@ -15,26 +15,18 @@ export default function LandingPage() {
         <div className="container-wide relative section-padding">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="max-w-xl">
-              <div className="trust-badge mb-6 animate-fade-in">
-                <svg className="w-4 h-4 text-brass-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                Trusted by 50+ Ontario law firms
-              </div>
-              
               <h1 className="font-serif text-display text-navy-900 mb-6 animate-fade-in-up text-balance">
                 Catch the surprises
-                <span className="block text-brass-600">before you firm up.</span>
+                <span className="block text-brass-600">before you go firm.</span>
               </h1>
               
               <p className="text-lg text-slate-600 mb-8 leading-relaxed animate-fade-in-up">
-                Turn messy condo status certificates into clear, standardized risk reports. 
-                Surface arrears, litigation, reserve fund issues, and special assessments in minutes—not hours.
+                Upload a status certificate. Get a standardized risk report with red flags, key numbers, and page citations in under 2 minutes.
               </p>
               
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8 animate-fade-in-up">
+              <div id="hero-cta" className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 animate-fade-in-up">
                 <Link href="/analyze" className="btn-accent text-base px-8 py-4">
-                  Analyze a Certificate
+                  Analyze Certificate
                   <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
@@ -44,18 +36,26 @@ export default function LandingPage() {
                 </Link>
               </div>
               
-              <div className="flex items-center gap-6 text-sm text-slate-500 animate-fade-in">
-                <span className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 animate-fade-in border-t border-slate-100 pt-6">
+                <span className="flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  No training on your data
+                  SOC 2-ready
                 </span>
-                <span className="flex items-center gap-2">
+                <span className="text-slate-300">|</span>
+                <span className="flex items-center gap-1.5">
                   <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                   </svg>
-                  Results in under 2 minutes
+                  256-bit encryption
+                </span>
+                <span className="text-slate-300">|</span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Auto-delete in 7 days
                 </span>
               </div>
             </div>
@@ -75,41 +75,41 @@ export default function LandingPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-xs text-slate-500 uppercase tracking-wide">Corporation</div>
-                      <div className="font-serif font-semibold text-navy-900">TSCC No. 1511</div>
+                      <div className="font-serif font-semibold text-navy-900">TSCC No. 2847</div>
                     </div>
-                    <span className="badge-success">Low Risk</span>
+                    <span className="badge-warning">Medium Risk</span>
                   </div>
                   <div className="divider" />
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-serif font-bold text-navy-900">28</div>
+                      <div className="text-2xl font-serif font-bold text-navy-900">32</div>
                       <div className="text-xs text-slate-500">Items Analyzed</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-serif font-bold text-emerald-600">22</div>
+                      <div className="text-2xl font-serif font-bold text-emerald-600">24</div>
                       <div className="text-xs text-slate-500">Verified OK</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-serif font-bold text-amber-600">3</div>
-                      <div className="text-xs text-slate-500">Warnings</div>
+                      <div className="text-2xl font-serif font-bold text-red-600">2</div>
+                      <div className="text-xs text-slate-500">Critical</div>
                     </div>
                   </div>
                   <div className="divider" />
                   <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                      <span className="text-red-800 font-medium">Special assessment: $18,500 due at closing</span>
+                      <span className="ml-auto text-xs text-red-600 bg-red-100 px-1.5 py-0.5 rounded font-medium">p.23</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                      <span className="text-red-800 font-medium">Pending litigation: slip-and-fall claim</span>
+                      <span className="ml-auto text-xs text-red-600 bg-red-100 px-1.5 py-0.5 rounded font-medium">p.31</span>
+                    </div>
                     <div className="flex items-center gap-2 text-sm">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span className="text-slate-700">Reserve fund study expires in 6 months</span>
+                      <span className="text-slate-700">Reserve fund at 72% of target</span>
                       <span className="ml-auto text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">p.12</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      <span className="text-slate-700">Insurance deductible above average</span>
-                      <span className="ml-auto text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">p.8</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      <span className="text-slate-700">No litigation disclosed</span>
-                      <span className="ml-auto text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">p.15</span>
                     </div>
                   </div>
                 </div>
@@ -119,24 +119,45 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Logos / Social Proof */}
-      <section className="border-y border-slate-100 bg-slate-50/50 py-12">
+      {/* 3-Step How It Works Micro-Section */}
+      <section className="py-16 bg-slate-50 border-y border-slate-100">
         <div className="container-wide">
-          <p className="text-center text-sm text-slate-500 mb-8">Trusted by leading real estate professionals across Ontario</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-60">
-            <div className="text-slate-400 font-serif text-lg font-semibold">Cassels LLP</div>
-            <div className="text-slate-400 font-serif text-lg font-semibold">Miller Thomson</div>
-            <div className="text-slate-400 font-serif text-lg font-semibold">Gardiner Roberts</div>
-            <div className="text-slate-400 font-serif text-lg font-semibold">Aird & Berlis</div>
-            <div className="text-slate-400 font-serif text-lg font-semibold">Dale & Lessmann</div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-navy-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-cream-100 font-serif font-bold">1</span>
+              </div>
+              <div>
+                <h3 className="font-serif font-semibold text-navy-900 mb-1">Upload PDF</h3>
+                <p className="text-slate-600 text-sm">Drop your status certificate. Any Ontario format.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-navy-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-cream-100 font-serif font-bold">2</span>
+              </div>
+              <div>
+                <h3 className="font-serif font-semibold text-navy-900 mb-1">Get red flags + key numbers</h3>
+                <p className="text-slate-600 text-sm">AI extracts 28+ data points with page citations.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-navy-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-cream-100 font-serif font-bold">3</span>
+              </div>
+              <div>
+                <h3 className="font-serif font-semibold text-navy-900 mb-1">Export & share</h3>
+                <p className="text-slate-600 text-sm">PDF report or shareable link for your client.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Value Props */}
+      {/* Value Props - 4 tiles, larger text */}
       <section className="section-padding bg-white">
         <div className="container-wide">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="font-serif text-headline text-navy-900 mb-4">
               Minutes, not hours
             </h2>
@@ -145,18 +166,17 @@ export default function LandingPage() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-5 gap-6">
+          <div className="grid md:grid-cols-4 gap-8">
             {[
-              { icon: '📋', title: 'Executive summary', desc: 'One-page overview of what matters most' },
-              { icon: '🚩', title: 'Red flags surfaced', desc: 'Issues ranked by severity and urgency' },
-              { icon: '💰', title: 'Key numbers extracted', desc: 'Fees, reserves, insurance, arrears' },
-              { icon: '🔍', title: 'Missing items flagged', desc: 'Know what\'s not disclosed' },
-              { icon: '📤', title: 'Exportable reports', desc: 'Share with clients instantly' },
+              { icon: '🚩', title: 'Red flags surfaced', desc: 'Critical issues ranked by severity with page citations' },
+              { icon: '💰', title: 'Key numbers extracted', desc: 'Fees, reserves, insurance, arrears—all in one place' },
+              { icon: '📄', title: 'Page citations', desc: 'Every finding linked to source page for verification' },
+              { icon: '🗑️', title: 'Auto-delete', desc: 'Documents deleted after 7 days, or instantly on request' },
             ].map((item) => (
-              <div key={item.title} className="text-center p-6 rounded-xl hover:bg-slate-50 transition-colors">
-                <div className="text-3xl mb-4">{item.icon}</div>
-                <h3 className="font-semibold text-navy-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-slate-500">{item.desc}</p>
+              <div key={item.title} className="text-center p-6 rounded-xl bg-slate-50 hover:bg-cream-50 transition-colors">
+                <div className="text-4xl mb-4">{item.icon}</div>
+                <h3 className="font-serif font-semibold text-navy-900 mb-2 text-lg">{item.title}</h3>
+                <p className="text-slate-600">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -232,7 +252,7 @@ export default function LandingPage() {
         <div className="container-wide">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-serif text-headline text-navy-900 mb-4">
-              Built for real estate workflows
+              Designed for Ontario real estate workflows
             </h2>
             <p className="text-lg text-slate-600">
               Whether you're buying, advising, or closing—get the clarity you need to move forward with confidence.
@@ -287,8 +307,8 @@ export default function LandingPage() {
               <span className="text-cream-100 font-serif font-semibold">JM</span>
             </div>
             <div className="text-left">
-              <div className="text-cream-100 font-medium">Jennifer Morrison</div>
-              <div className="text-slate-400 text-sm">Real Estate Lawyer, Toronto</div>
+              <div className="text-cream-100 font-medium">Real Estate Lawyer</div>
+              <div className="text-slate-400 text-sm">Toronto, Ontario</div>
             </div>
           </div>
         </div>
@@ -320,7 +340,7 @@ export default function LandingPage() {
               <ul className="space-y-4">
                 {[
                   'One-page buyer-friendly summary',
-                  'Lawyer-grade detail and references',
+                  'Lawyer-grade detail with page citations',
                   'Exportable PDF report',
                   'Shareable link for clients',
                   'Questions to ask the property manager',
@@ -389,8 +409,8 @@ export default function LandingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <h3 className="font-serif font-semibold text-cream-100 mb-3">Data retention controls</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">Delete immediately or set your own retention period. You're in control.</p>
+              <h3 className="font-serif font-semibold text-cream-100 mb-3">Auto-delete in 7 days</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">Documents automatically removed. Or delete instantly—you're in control.</p>
             </div>
             
             <div className="text-center">
@@ -399,8 +419,8 @@ export default function LandingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <h3 className="font-serif font-semibold text-cream-100 mb-3">Enterprise-grade security</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">256-bit encryption in transit and at rest. SOC 2 compliant infrastructure.</p>
+              <h3 className="font-serif font-semibold text-cream-100 mb-3">SOC 2-ready infrastructure</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">256-bit encryption in transit and at rest. Enterprise-grade security.</p>
             </div>
           </div>
         </div>
@@ -410,20 +430,23 @@ export default function LandingPage() {
       <section className="section-padding bg-gradient-to-b from-cream-50 to-white">
         <div className="container-narrow text-center">
           <h2 className="font-serif text-headline text-navy-900 mb-4">
-            Ready to speed up your review process?
+            Ready to speed up your reviews?
           </h2>
           <p className="text-lg text-slate-600 mb-8">
-            Upload a status certificate and see results in minutes. No credit card required.
+            Upload a status certificate and see results in under 2 minutes.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/analyze" className="btn-accent text-base px-8 py-4">
-              Get Started Free
-              <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
+            <Link 
+              href="/analyze"
+              className="btn-accent text-base px-8 py-4"
+            >
+              Analyze Certificate
             </Link>
-            <Link href="/pricing" className="text-navy-700 hover:text-navy-900 font-medium transition-colors">
-              View Pricing →
+            <Link 
+              href="/demo"
+              className="text-navy-700 hover:text-navy-900 font-medium transition-colors"
+            >
+              View Demo Report →
             </Link>
           </div>
         </div>
