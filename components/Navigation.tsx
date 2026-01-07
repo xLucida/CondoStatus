@@ -29,7 +29,7 @@ export default function Navigation() {
           </div>
           <div className="flex flex-col">
             <span className="font-serif font-semibold text-navy-900 text-lg leading-none">CertAnalyzer</span>
-            <span className="text-[10px] text-slate-500 tracking-wide uppercase">Status Certificate Analysis</span>
+            <span className="text-[10px] text-slate-500 tracking-wide uppercase">Condo Document Analysis</span>
           </div>
         </Link>
         
@@ -66,7 +66,7 @@ export default function Navigation() {
             onClick={scrollToHero}
             className="btn-primary"
           >
-            Analyze Status Certificate
+            Analyze Condo Documents
           </Link>
           <button 
             className="md:hidden p-2 text-slate-600"

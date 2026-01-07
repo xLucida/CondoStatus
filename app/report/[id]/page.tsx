@@ -274,6 +274,21 @@ Best regards,
 [Your Name]`;
 };
 
+interface PropertyInfo {
+  propertyId: string;
+  address: string;
+  unit?: string;
+  city?: string;
+  files?: Array<{ name: string; size: number; docType: string }>;
+}
+
+interface DocumentsSummary {
+  count: number;
+  totalPages: number;
+  totalSize: number;
+  files?: Array<{ fileName: string; docType: string; pageCount: number; pageOffset: number }>;
+}
+
 // Main Component
 export default function ReportPage() {
   const params = useParams();
@@ -282,6 +297,8 @@ export default function ReportPage() {
   
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [fileName, setFileName] = useState('');
+  const [propertyInfo, setPropertyInfo] = useState<PropertyInfo | null>(null);
+  const [documentsSummary, setDocumentsSummary] = useState<DocumentsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -294,10 +311,17 @@ export default function ReportPage() {
   const [copied, setCopied] = useState(false);
   const letterRef = useRef<HTMLTextAreaElement>(null);
 
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  };
+
   // Load from sessionStorage
   useEffect(() => {
     const cached = sessionStorage.getItem('currentAnalysis');
     const cachedFile = sessionStorage.getItem('currentFile');
+    const cachedProperty = sessionStorage.getItem('currentProperty');
     
     if (cached) {
       try {
@@ -305,11 +329,21 @@ export default function ReportPage() {
         setAnalysis(data.analysis);
         setFileName(cachedFile || 'Certificate.pdf');
         setPdfUrl(sessionStorage.getItem('currentPdfUrl'));
+        
+        // Load property info if available
+        if (cachedProperty) {
+          setPropertyInfo(JSON.parse(cachedProperty));
+        }
+        
+        // Load documents summary if available
+        if (data.documentsSummary) {
+          setDocumentsSummary(data.documentsSummary);
+        }
       } catch {
         setError('Failed to load report data');
       }
     } else {
-      setError('No report found. Please upload a certificate first.');
+      setError('No report found. Please upload documents first.');
     }
     setLoading(false);
   }, []);
@@ -339,10 +373,10 @@ export default function ReportPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-cream-50">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <div className="text-gray-600">Loading analysis...</div>
+          <div className="animate-spin w-8 h-8 border-4 border-brass-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="text-slate-600">Loading analysis...</div>
         </div>
       </div>
     );
@@ -350,15 +384,15 @@ export default function ReportPage() {
 
   if (error || !analysis) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-cream-50">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">❌</span>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Report Not Found</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button onClick={() => router.push('/')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            ← Upload a Certificate
+          <h2 className="font-serif text-xl font-semibold text-navy-900 mb-2">Report Not Found</h2>
+          <p className="text-slate-600 mb-6">{error}</p>
+          <button onClick={() => router.push('/analyze')} className="px-4 py-2 bg-brass-500 text-navy-900 rounded-lg hover:bg-brass-600">
+            ← Upload Documents
           </button>
         </div>
       </div>
@@ -381,14 +415,24 @@ export default function ReportPage() {
       <header className="bg-navy-900 border-b border-navy-800 sticky top-0 z-30 print:static">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/')} className="text-cream-200 hover:text-cream-100 print:hidden">
+            <button onClick={() => router.push('/analyze')} className="text-cream-200 hover:text-cream-100 print:hidden">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
             <div>
-              <h1 className="font-serif font-semibold text-cream-100">{analysis.corporation || 'Unknown Corporation'}</h1>
-              <p className="text-sm text-cream-300">{analysis.address || 'Address unavailable'}</p>
+              <h1 className="font-serif font-semibold text-cream-100">
+                {propertyInfo 
+                  ? `Property Review: ${propertyInfo.address}${propertyInfo.unit ? ` #${propertyInfo.unit}` : ''}`
+                  : analysis.corporation || 'Unknown Corporation'
+                }
+              </h1>
+              <p className="text-sm text-cream-300">
+                {documentsSummary 
+                  ? `${documentsSummary.count} PDF${documentsSummary.count !== 1 ? 's' : ''} · ${documentsSummary.totalPages} pages · ${formatBytes(documentsSummary.totalSize)}`
+                  : analysis.address || 'Address unavailable'
+                }
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2 print:hidden">

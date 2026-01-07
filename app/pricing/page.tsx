@@ -10,11 +10,11 @@ export default function PricingPage() {
       period: '/month',
       description: 'Perfect for individual agents or small teams just getting started.',
       features: [
-        '10 certificate analyses per month',
+        '10 property reviews per month',
+        'Multi-PDF support (up to 20 docs, 75MB)',
         'Executive summary reports',
         'Red flag detection',
         'PDF export',
-        'Email support',
       ],
       cta: 'Start Free Trial',
       popular: false,
@@ -25,7 +25,7 @@ export default function PricingPage() {
       period: '/month',
       description: 'For busy real estate professionals handling multiple deals.',
       features: [
-        '50 certificate analyses per month',
+        '50 property reviews per month',
         'Everything in Starter',
         'Lawyer-grade detailed reports',
         'Questions-to-ask checklist',
@@ -41,7 +41,7 @@ export default function PricingPage() {
       period: '',
       description: 'For law firms and brokerages with high volume needs.',
       features: [
-        'Unlimited analyses',
+        'Unlimited property reviews',
         'Everything in Professional',
         'Custom branding',
         'Team management',
@@ -133,16 +133,16 @@ export default function PricingPage() {
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="font-semibold text-navy-900 mb-2">What counts as one analysis?</h3>
-              <p className="text-slate-600 leading-relaxed">Each status certificate PDF you upload and analyze counts as one analysis, regardless of the document length.</p>
+              <h3 className="font-semibold text-navy-900 mb-2">What counts as one property review?</h3>
+              <p className="text-slate-600 leading-relaxed">One property review covers a single condo unit/address and may include multiple PDFs (status certificate + supplementary documents). Limits: up to 600 pages or 75MB per review.</p>
             </div>
             <div>
               <h3 className="font-semibold text-navy-900 mb-2">Can I upgrade or downgrade anytime?</h3>
               <p className="text-slate-600 leading-relaxed">Yes, you can change your plan at any time. Changes take effect on your next billing cycle.</p>
             </div>
             <div>
-              <h3 className="font-semibold text-navy-900 mb-2">What if I run out of analyses?</h3>
-              <p className="text-slate-600 leading-relaxed">You can purchase additional analyses as needed, or upgrade to a higher tier for better value.</p>
+              <h3 className="font-semibold text-navy-900 mb-2">What if I run out of property reviews?</h3>
+              <p className="text-slate-600 leading-relaxed">You can purchase additional reviews as needed, or upgrade to a higher tier for better value.</p>
             </div>
             <div>
               <h3 className="font-semibold text-navy-900 mb-2">Is there a free trial?</h3>

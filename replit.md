@@ -1,23 +1,28 @@
 # CertAnalyzer
 
 ## Overview
-AI-powered extraction and analysis tool for Ontario condo status certificates. Users can upload a PDF and receive a detailed risk analysis in under 2 minutes. The platform is designed for real estate lawyers, agents, and buyers.
+AI-powered extraction and analysis tool for Ontario condo documents. Users upload multiple PDFs per property (status certificate + attachments) and receive a consolidated risk analysis in under 2 minutes. The platform is designed for real estate lawyers, agents, and buyers.
 
 ## Positioning
-Turn messy condo status certificates into a clear, standardized risk report in minutes so deals close faster and surprises don't show up after firm conditions.
+Turn messy condo status certificates and attachments into a clear, standardized risk report in minutes so deals close faster and surprises don't show up after firm conditions.
+
+## Product Model
+- **Property-based**: Users upload multiple PDFs per property (typically 4-15 documents)
+- **1 Property Review** = Status certificate + all attachments (budget, financials, reserve fund study, insurance, by-laws, etc.)
+- **Limits**: Up to 20 PDFs, 75MB total per property review
 
 ## Project Architecture
 - **Framework**: Next.js 14 with TypeScript
 - **Styling**: TailwindCSS with custom design tokens
 - **Fonts**: Source Serif 4 (headings), Inter (body)
 - **Error Tracking**: Sentry (optional, only enabled if NEXT_PUBLIC_SENTRY_DSN is set)
-- **AI Integration**: OpenAI/Venice for PDF analysis
+- **AI Integration**: Venice.ai API with GLM-4.7 model for multi-document analysis
 
 ## Project Structure
 ```
 app/                    # Next.js app router pages
 ├── page.tsx           # Landing/marketing page
-├── analyze/           # Certificate upload and analysis
+├── analyze/           # Multi-document upload and analysis
 ├── pricing/           # Pricing tiers page
 ├── how-it-works/      # Product walkthrough
 ├── about/             # Company info
@@ -25,12 +30,12 @@ app/                    # Next.js app router pages
 ├── privacy/           # Privacy policy
 ├── terms/             # Terms of service
 ├── demo/              # Demo report
-├── report/[id]/       # Dynamic report pages
+├── report/[id]/       # Dynamic report pages with property header
 ├── api/               # Backend API endpoints
-│   ├── analyze/       # PDF analysis endpoint
+│   ├── analyze/       # Multi-PDF analysis endpoint
 │   └── health/        # Health check endpoint
 components/            # React components
-├── Navigation.tsx     # Site-wide navigation with trust bar
+├── Navigation.tsx     # Site-wide navigation
 ├── Footer.tsx         # Site-wide footer
 ├── PDFViewer.tsx      # PDF viewing component
 ├── Toast.tsx          # Notification component
@@ -54,7 +59,7 @@ types/                 # TypeScript type definitions
 
 ## Pages
 - `/` - Landing page with hero, value props, risk features, trust signals
-- `/analyze` - Upload and analyze status certificates
+- `/analyze` - Multi-PDF upload with property container (address/unit), doc-type tagging
 - `/pricing` - Three tiers (Starter $49, Professional $149, Enterprise custom)
 - `/how-it-works` - 4-step process walkthrough
 - `/about` - Company mission and who we serve
@@ -92,40 +97,34 @@ types/                 # TypeScript type definitions
 - `.container-narrow`: 900px max for text-heavy pages
 - `.section-padding`: 80px vertical on desktop, 48px on mobile
 
+## Multi-Document Upload Features
+- **Property Container**: Address + unit fields to group documents
+- **Drag-and-Drop**: Multi-file upload with visual feedback
+- **File List**: Displays filename, size, doc-type dropdown, remove button
+- **Doc-Type Tagging**: Status Certificate, Budget, Financial Statements, Reserve Fund Study, Insurance, Declaration/By-laws, Other
+- **Size Validation**: 75MB total limit with real-time counter
+- **Progress Tracking**: Shows upload and analysis progress per file
+
 ## Report Features
-- **Page Reference Badges**: Each extracted item and issue shows a "p.X" badge indicating the source page in the PDF
-- **PDF Navigation**: Clicking page badges in the report view opens and navigates to that page in the PDF viewer
+- **Property Header**: Shows address + unit, document count, total pages, total size
+- **Page Reference Badges**: Each extracted item and issue shows a "p.X" badge indicating the source page
+- **PDF Navigation**: Clicking page badges opens and navigates to that page in the PDF viewer
 - **Split View**: Report page shows analysis on left, PDF viewer on right for easy verification
 - **Client Letter Generator**: One-click generation of client-ready summary letters
 - **OCR Support**: Automatic OCR fallback for scanned/image-based PDFs using Tesseract.js
 
 ## Recent Changes
-- January 7, 2026: Unified actual report page (/report/[id]) design to match demo page styling - navy header, cream background, brass page badges, Source Serif 4 headings
-- January 7, 2026: Added jsonrepair library to automatically fix malformed AI JSON responses (trailing commas, markdown wrappers, etc.)
-- January 7, 2026: Added detailed logging for JSON parsing failures to diagnose Venice API response issues
-- January 7, 2026: Unified demo report page design with landing page aesthetic (navy/slate/cream/brass color palette, Source Serif 4 headings, brass-colored page badges and CTAs)
-- January 7, 2026: Updated hero H1 to "Ontario status certificate review in under 2 minutes."
-- January 7, 2026: Unified all CTAs to "Analyze Status Certificate" (header, hero, bottom)
-- January 7, 2026: Updated trust bullets to "Page citations · Auto-delete controls · No training on your data"
-- January 7, 2026: Added Ontario format line below subhead
-- January 7, 2026: Added "not legal advice" disclaimer under risk detection section
-- January 7, 2026: Changed "SOC 2-ready" to "Security-first" to avoid unverified claims
-- January 7, 2026: Improved feature card readability with larger text and better contrast
-- January 7, 2026: Landing page improvements - removed dark trust bar, added inline trust line under hero CTA
-- January 7, 2026: De-duplicated CTAs - header button scrolls to hero on homepage
-- January 7, 2026: Punched up hero preview with "Critical" examples (special assessment $18,500, litigation) in red
-- January 7, 2026: Tightened hero copy with page citations mention, changed "firm up" to "go firm"
-- January 7, 2026: Added 3-step micro-section after hero (Upload PDF → Get red flags → Export/share)
-- January 7, 2026: Refined feature strip to 4 tiles with "page citations" and "auto-delete" as explicit features
-- January 7, 2026: Removed placeholder logo row entirely
-- January 7, 2026: Complete design system overhaul with premium legal aesthetic
-- January 7, 2026: Added design tokens: navy/slate/cream/brass colors, Source Serif 4 + Inter fonts
-- January 7, 2026: Updated all marketing pages with new design (landing, pricing, how-it-works, about)
-- January 7, 2026: Redesigned footer with navy background and improved layout
-- January 7, 2026: Added visible page reference badges (p.X format) to all report items and issues
-- January 7, 2026: Page badges are now clickable and navigate to corresponding PDF page
+- January 7, 2026: **Multi-document property-based UX** - Users now upload multiple PDFs per property with address/unit fields
+- January 7, 2026: Added property container with address, unit, and city fields
+- January 7, 2026: Implemented multi-file upload with doc-type dropdown per file
+- January 7, 2026: Updated backend API to handle up to 20 PDFs, 75MB total per property
+- January 7, 2026: Combined analysis across all documents with document markers for AI context
+- January 7, 2026: Report header now shows "Property Review: {address} #{unit}" with documents summary
+- January 7, 2026: Updated all site-wide CTAs to "Analyze Condo Documents"
+- January 7, 2026: Updated pricing copy to reflect multi-PDF property model
+- January 7, 2026: Unified actual report page (/report/[id]) design to match demo page styling
+- January 7, 2026: Added jsonrepair library to automatically fix malformed AI JSON responses
+- January 7, 2026: Complete design system overhaul with premium legal aesthetic (navy/slate/cream/brass)
 - January 7, 2026: Built marketing site with landing, pricing, how-it-works, about pages
-- January 7, 2026: Added navigation and footer components
-- January 7, 2026: Moved upload tool to /analyze route
-- January 7, 2026: Added contact, privacy, and terms pages
+- January 7, 2026: Added visible page reference badges (p.X format) to all report items
 - January 7, 2026: Initial Replit setup - configured for port 5000

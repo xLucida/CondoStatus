@@ -6,12 +6,12 @@ export default function HowItWorksPage() {
   const steps = [
     {
       number: '01',
-      title: 'Upload your certificate',
-      description: 'Drag and drop your Ontario condo status certificate PDF. We accept documents up to 20MB.',
+      title: 'Upload your documents',
+      description: 'Drag and drop your condo status certificate and attachments. Supports multiple PDFs per property.',
       details: [
         'Secure upload with 256-bit encryption',
-        'Supports all standard status certificate formats',
-        'No account required to try',
+        'Supports all standard status certificate formats + attachments',
+        'Up to 600 pages or 75MB per property review',
       ],
       icon: '📤',
     },

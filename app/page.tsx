@@ -29,7 +29,7 @@ export default function LandingPage() {
               
               <div id="hero-cta" className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 animate-fade-in-up">
                 <Link href="/analyze" className="btn-accent text-base px-8 py-4">
-                  Analyze Status Certificate
+                  Analyze Condo Documents
                   <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
@@ -116,8 +116,8 @@ export default function LandingPage() {
                 <span className="text-cream-100 font-serif font-bold">1</span>
               </div>
               <div>
-                <h3 className="font-serif font-semibold text-navy-900 mb-1">Upload PDF</h3>
-                <p className="text-slate-600 text-sm">Drop your status certificate. Any Ontario format.</p>
+                <h3 className="font-serif font-semibold text-navy-900 mb-1">Upload Documents</h3>
+                <p className="text-slate-600 text-sm">Drop status certificate + attachments. Multi-PDF supported.</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -424,14 +424,14 @@ export default function LandingPage() {
             Ready to speed up your reviews?
           </h2>
           <p className="text-lg text-slate-600 mb-8">
-            Upload a status certificate and see results in under 2 minutes.
+            Upload your condo documents and see results in under 2 minutes.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link 
               href="/analyze"
               className="btn-accent text-base px-8 py-4"
             >
-              Analyze Status Certificate
+              Analyze Condo Documents
             </Link>
             <Link 
               href="/demo"
