@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { ExtractionResult, Section, Issue, ExtractedItem } from '@/types';
+import { AnalysisError, ExtractionResult, Section, Issue, ExtractedItem } from '@/types';
 import { findPageForQuote } from './pdf-parser';
 
 // Venice.ai API - OpenAI-compatible endpoint
@@ -467,7 +467,99 @@ export async function analyzeStatusCertificate(
     jsonStr = jsonMatch[1];
   }
 
-  const result: ExtractionResult = JSON.parse(jsonStr);
+  const buildErrorResult = (
+    error: AnalysisError,
+    partial: Partial<ExtractionResult> = {}
+  ): ExtractionResult => ({
+    corporation: partial.corporation || '',
+    address: partial.address || '',
+    certificate_date: partial.certificate_date || '',
+    expiry_date: partial.expiry_date || '',
+    sections: partial.sections || {},
+    issues: partial.issues || [],
+    risk_rating: partial.risk_rating || 'YELLOW',
+    summary: partial.summary || {
+      total_items: 0,
+      verified: 0,
+      warnings: 0,
+      missing: 0,
+    },
+    ...partial,
+    error,
+  });
+
+  let parsedValue: unknown;
+  try {
+    parsedValue = JSON.parse(jsonStr);
+  } catch (error) {
+    return buildErrorResult({
+      type: 'parse_error',
+      message: 'Unable to parse the analysis response.',
+      details: [error instanceof Error ? error.message : 'Unknown parsing error'],
+      raw: jsonStr.slice(0, 2000),
+    });
+  }
+
+  if (!parsedValue || typeof parsedValue !== 'object') {
+    return buildErrorResult({
+      type: 'validation_error',
+      message: 'Analysis response was not a JSON object.',
+      details: ['Response JSON must be an object.'],
+      raw: jsonStr.slice(0, 2000),
+    });
+  }
+
+  const parsed = parsedValue as Partial<ExtractionResult>;
+  const validationErrors: string[] = [];
+
+  const sections =
+    parsed.sections && typeof parsed.sections === 'object' ? parsed.sections : {};
+  if (!parsed.sections || typeof parsed.sections !== 'object') {
+    validationErrors.push('Missing or invalid "sections".');
+  }
+
+  const allowedRatings = ['GREEN', 'YELLOW', 'RED'] as const;
+  const riskRating = allowedRatings.includes(parsed.risk_rating as any)
+    ? (parsed.risk_rating as ExtractionResult['risk_rating'])
+    : 'YELLOW';
+  if (!parsed.risk_rating || !allowedRatings.includes(parsed.risk_rating as any)) {
+    validationErrors.push('Missing or invalid "risk_rating".');
+  }
+
+  if (!parsed.summary || typeof parsed.summary !== 'object') {
+    validationErrors.push('Missing "summary".');
+  }
+
+  if (validationErrors.length > 0) {
+    const calculated = calculateSummary(sections as Record<string, Section>);
+    return buildErrorResult(
+      {
+        type: 'validation_error',
+        message: 'Analysis response missing required fields.',
+        details: validationErrors,
+        raw: jsonStr.slice(0, 2000),
+      },
+      {
+        ...parsed,
+        sections,
+        issues: Array.isArray(parsed.issues) ? parsed.issues : [],
+        risk_rating: riskRating,
+        summary: {
+          total_items: calculated.total,
+          verified: calculated.verified,
+          warnings: calculated.warnings,
+          missing: calculated.missing,
+        },
+      }
+    );
+  }
+
+  const result: ExtractionResult = {
+    ...parsed,
+    sections,
+    issues: Array.isArray(parsed.issues) ? parsed.issues : [],
+    risk_rating: riskRating,
+  } as ExtractionResult;
 
   // Add page numbers to items and issues
   if (pages.length > 0) {

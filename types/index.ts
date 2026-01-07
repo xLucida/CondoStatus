@@ -141,6 +141,13 @@ export interface ClaudeExtractionPrompt {
   content: string;
 }
 
+export interface AnalysisError {
+  type: 'parse_error' | 'validation_error';
+  message: string;
+  details?: string[];
+  raw?: string;
+}
+
 export interface ExtractionResult {
   corporation: string;
   unit?: string;
@@ -160,6 +167,7 @@ export interface ExtractionResult {
     warnings: number;
     missing: number;
   };
+  error?: AnalysisError;
 }
 
 export interface ExtractedItem {
