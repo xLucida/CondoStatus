@@ -1,0 +1,74 @@
+Update the product UX to be property-based and multi-document by default. The reality is 4–15 PDFs per condo property. Do NOT assume a single “status certificate” PDF.
+
+Constraints:
+- Keep the current minimal/professional design.
+- Do not add new pricing feature tiers; only clarify usage unit.
+- Focus on clear UX and correct terminology.
+
+========================
+TASK 1 — Replace single-PDF language across the site
+========================
+Find/replace copy:
+- Replace “Upload status certificate” with “Upload condo documents for this property (status certificate + attachments)”
+- Replace “Analyze status certificate” CTA with “Analyze Condo Documents” or “Generate Property Report”
+- Keep “status certificate” only as a parenthetical descriptor for clarity/SEO.
+
+========================
+TASK 2 — Make the upload UI support multiple PDFs (default)
+========================
+- Update file input to accept multiple files.
+- Drag/drop supports multiple PDFs.
+- Show a list of selected files with:
+  - filename
+  - size
+  - remove button
+- Validate: only PDFs, max total size (use a sensible cap like 75MB total; show error state).
+- Update backend API request to send multiple files (or upload individually and link to a propertyId).
+
+========================
+TASK 3 — Introduce a “Property” container (required)
+========================
+Before upload or at top of upload module, require:
+- Address (text)
+- Unit (optional but recommended)
+- City/Province (optional)
+On submit, create a propertyId/matterId and associate all uploads to it.
+
+========================
+TASK 4 — Optional doc-type tagging per file (lightweight)
+========================
+In the file list, add an optional dropdown per file:
+- Status Certificate
+- Budget
+- Financial Statements
+- Reserve Fund Study
+- Insurance Certificate
+- Declaration/By-laws/Rules
+- Other (default)
+Store tags with each file.
+
+========================
+TASK 5 — Consolidated report page updates
+========================
+- Update report header to: “Property Review: {address/unit}”
+- Add “Documents included” summary: “12 PDFs · 186 pages · 38MB”
+- Update citations to reference BOTH:
+  - source filename
+  - page number (e.g., “Budget.pdf p.4”)
+If there is a PDF viewer, clicking citation should open the correct document and page (if feasible now; otherwise show document name prominently next to page).
+
+========================
+TASK 6 — Pricing definition update (copy only)
+========================
+Update pricing/FAQ copy to reflect multi-PDF property reality:
+- “1 Property Review covers one condo unit/address and may include multiple PDFs (status certificate + supplementary docs).”
+- “Limits: up to 600 total pages or 75MB per property review; larger packages may require splitting.”
+
+========================
+TASK 7 — QA
+========================
+- Desktop and mobile: multi-PDF upload works, file list scrolls cleanly.
+- Confirm no remaining copy implying a single PDF.
+- Confirm backend handles multiple PDFs and creates one consolidated result for a propertyId.
+- Ensure error states are clear (wrong file type, too large total, missing address).
+Commit changes.
