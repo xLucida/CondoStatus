@@ -450,9 +450,9 @@ export async function analyzeStatusCertificate(
   pages: string[] = []
 ): Promise<ExtractionResult> {
   const venice = createVeniceClient();
-  // Use Claude Opus 4.5 via Venice API (OpenAI-compatible)
+  // Use GLM-4.7 via Venice API (OpenAI-compatible)
   const response = await venice.chat.completions.create({
-    model: 'claude-opus-45',  // Claude Opus 4.5 on Venice
+    model: 'zai-org-glm-4.7',  // GLM-4.7 on Venice
     max_tokens: 8000,
     messages: [
       {
