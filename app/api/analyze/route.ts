@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeStatusCertificate } from '@/lib/claude-analyzer';
+import { parsePDF } from '@/lib/pdf-parser';
 
 export const maxDuration = 60; // Allow up to 60 seconds for analysis
 
@@ -27,8 +28,7 @@ export async function POST(request: NextRequest) {
     const pdfBuffer = Buffer.from(file, 'base64');
 
     // Extract text from PDF
-    const pdfParse = (await import('pdf-parse')).default;
-    const pdfData = await pdfParse(pdfBuffer);
+    const pdfData = await parsePDF(pdfBuffer);
     const extractedText = pdfData.text;
 
     if (!extractedText || extractedText.length < 100) {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Analyze with Claude via Venice
-    const analysis = await analyzeStatusCertificate(extractedText);
+    const analysis = await analyzeStatusCertificate(extractedText, pdfData.pages);
 
     // Generate a simple report ID (no database, just for URL)
     const reportId = `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       analysis,
       fileName,
       extractedTextLength: extractedText.length,
-      pageCount: pdfData.numpages,
+      pageCount: pdfData.pageCount,
     });
 
   } catch (error) {
