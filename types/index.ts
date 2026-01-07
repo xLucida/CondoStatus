@@ -35,13 +35,14 @@ export interface Section {
 
 export interface ExtractedItem {
   id: string;
+  key?: string;
   label: string;
   value: string;
-  page: number | null;
-  status: 'ok' | 'warning' | 'missing';
+  page?: number | null;
+  status: 'ok' | 'warning' | 'error' | 'missing';
   confidence: 'high' | 'medium' | 'low';
-  quote: string | null;
-  reason: string;
+  quote?: string | null;
+  reason?: string;
 }
 
 export interface Issue {
@@ -168,18 +169,6 @@ export interface ExtractionResult {
     missing: number;
   };
   error?: AnalysisError;
-}
-
-export interface ExtractedItem {
-  id: string;
-  key?: string;
-  label: string;
-  value: string;
-  page?: number | null;
-  status: 'ok' | 'warning' | 'error' | 'missing';
-  confidence: 'high' | 'medium' | 'low';
-  quote?: string | null;
-  reason?: string;
 }
 
 // Plan types

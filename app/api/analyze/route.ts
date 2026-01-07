@@ -92,7 +92,11 @@ export async function POST(request: NextRequest) {
 
     if (!extractedText || extractedText.length < 100) {
       return NextResponse.json(
-        { success: false, error: 'Could not extract text from PDF. The file may be scanned or image-based.' },
+        {
+          success: false,
+          error:
+            'We could not extract readable text from this PDF. If it is a scanned document, run OCR or export a text-based PDF and try again.',
+        },
         { status: 400 }
       );
     }
@@ -113,9 +117,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Analysis error:', error);
-    
     const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Analysis error:', message);
     
     // Provide helpful error messages
     if (message.includes('API key')) {

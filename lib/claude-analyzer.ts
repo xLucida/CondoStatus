@@ -1,13 +1,21 @@
 import OpenAI from 'openai';
 import { AnalysisError, ExtractionResult, Section, Issue, ExtractedItem } from '@/types';
 import { findPageForQuote } from './pdf-parser';
+import { normalizeSections } from './section-normalizer';
 
 // Venice.ai API - OpenAI-compatible endpoint
 // Uses DIEM tokens for zero-marginal-cost inference
-const venice = new OpenAI({
-  apiKey: process.env.VENICE_API_KEY!,
-  baseURL: 'https://api.venice.ai/api/v1',
-});
+const createVeniceClient = () => {
+  const apiKey = process.env.VENICE_API_KEY;
+  if (!apiKey) {
+    throw new Error('VENICE_API_KEY is not configured');
+  }
+
+  return new OpenAI({
+    apiKey,
+    baseURL: 'https://api.venice.ai/api/v1',
+  });
+};
 
 const EXTRACTION_PROMPT = `You are a legal document analyzer specializing in Ontario condominium status certificates. Analyze the provided status certificate text and extract ALL relevant information with extreme precision.
 
@@ -441,6 +449,7 @@ export async function analyzeStatusCertificate(
   text: string,
   pages: string[] = []
 ): Promise<ExtractionResult> {
+  const venice = createVeniceClient();
   // Use Claude Opus 4.5 via Venice API (OpenAI-compatible)
   const response = await venice.chat.completions.create({
     model: 'claude-opus-45',  // Claude Opus 4.5 on Venice
@@ -512,8 +521,9 @@ export async function analyzeStatusCertificate(
   const parsed = parsedValue as Partial<ExtractionResult>;
   const validationErrors: string[] = [];
 
-  const sections =
+  const rawSections =
     parsed.sections && typeof parsed.sections === 'object' ? parsed.sections : {};
+  const sections = normalizeSections(rawSections as Record<string, Section>);
   if (!parsed.sections || typeof parsed.sections !== 'object') {
     validationErrors.push('Missing or invalid "sections".');
   }
