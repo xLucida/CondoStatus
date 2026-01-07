@@ -2,8 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { analyzeStatusCertificate } from '@/lib/claude-analyzer';
 
 export const maxDuration = 60; // Allow up to 60 seconds for analysis
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 5;
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function getClientIp(request: NextRequest) {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0]?.trim() ?? 'unknown';
+  }
+
+  return request.ip ?? 'unknown';
+}
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const now = Date.now();
+  const entry = rateLimitStore.get(ip);
+  const resetAt = entry && entry.resetAt > now ? entry.resetAt : now + RATE_LIMIT_WINDOW_MS;
+  const count = entry && entry.resetAt > now ? entry.count : 0;
+
+  if (count >= RATE_LIMIT_MAX) {
+    const retryAfterSeconds = Math.max(1, Math.ceil((resetAt - now) / 1000));
+    return NextResponse.json(
+      { success: false, error: 'Rate limit exceeded. Please try again shortly.' },
+      { status: 429, headers: { 'Retry-After': retryAfterSeconds.toString() } }
+    );
+  }
+
+  rateLimitStore.set(ip, { count: count + 1, resetAt });
+
   try {
     const body = await request.json();
     const { file, fileName } = body;
