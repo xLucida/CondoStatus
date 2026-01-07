@@ -456,6 +456,10 @@ export async function analyzeStatusCertificate(
     max_tokens: 8000,
     messages: [
       {
+        role: 'system',
+        content: 'You are a legal document analyzer. Always respond with valid JSON only - no markdown, no code blocks, no explanations. Output raw JSON starting with { and ending with }.',
+      },
+      {
         role: 'user',
         content: `${EXTRACTION_PROMPT}\n\n--- STATUS CERTIFICATE TEXT ---\n\n${text}`,
       },
@@ -468,12 +472,29 @@ export async function analyzeStatusCertificate(
     throw new Error('No response content from Venice API');
   }
 
-  let jsonStr = content;
+  let jsonStr = content.trim();
   
-  // Handle markdown code blocks
-  const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+  // Handle markdown code blocks - try multiple patterns
+  // Pattern 1: ```json ... ```
+  let jsonMatch = jsonStr.match(/```json\s*([\s\S]*?)```/);
   if (jsonMatch) {
-    jsonStr = jsonMatch[1];
+    jsonStr = jsonMatch[1].trim();
+  } else {
+    // Pattern 2: ``` ... ```
+    jsonMatch = jsonStr.match(/```\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1].trim();
+    }
+  }
+  
+  // If still starts with backticks, strip them
+  jsonStr = jsonStr.replace(/^`+/, '').replace(/`+$/, '').trim();
+  
+  // Find the JSON object - look for first { and last }
+  const firstBrace = jsonStr.indexOf('{');
+  const lastBrace = jsonStr.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
   }
 
   const buildErrorResult = (
