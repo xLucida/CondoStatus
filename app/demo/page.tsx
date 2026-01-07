@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Sample data from real TSCC 1511 certificate
@@ -98,20 +98,34 @@ const DEMO_ANALYSIS = {
       quote: "Due to COVID-19, certain deadlines may be affected",
       page: 2
     }
+  ],
+  missing_items: [
+    { id: "m-1", label: "AGM Minutes", description: "Annual General Meeting minutes not attached", page: null },
+    { id: "m-2", label: "Audited Financial Statements", description: "Most recent audited financials not included", page: null },
+    { id: "m-3", label: "Engineering Reports", description: "No recent engineering assessment attached", page: null },
+  ],
+  questions_to_ask: [
+    { id: "q-1", question: "When is the next Reserve Fund Study scheduled?", context: "Current study dated November 2018 is approaching 3-year limit", page: 12 },
+    { id: "q-2", question: "Are any special assessments proposed but not yet approved?", context: "Certificate does not disclose pending assessments", page: null },
+    { id: "q-3", question: "Confirm flood deductible applies to common elements only?", context: "Flood deductible is $25,000 - confirm unit owner liability exposure", page: 15 },
+    { id: "q-4", question: "Request copy of most recent AGM minutes", context: "Not attached to certificate package", page: null },
   ]
 };
 
-// Components (same as report page)
+// Components
 const RiskBadge = ({ rating }: { rating: 'GREEN' | 'YELLOW' | 'RED' }) => {
   const config = {
-    GREEN: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', icon: '✓', label: 'Low Risk' },
-    YELLOW: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', icon: '⚠', label: 'Medium Risk' },
-    RED: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: '✗', label: 'High Risk' },
+    GREEN: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', icon: '✓', label: 'Low Flagged Risk' },
+    YELLOW: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', icon: '⚠', label: 'Medium Flagged Risk' },
+    RED: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: '✗', label: 'High Flagged Risk' },
   }[rating];
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 ${config.bg} ${config.border}`}>
-      <span className={`text-xl font-bold ${config.text}`}>{config.icon}</span>
-      <span className={`font-semibold ${config.text}`}>{config.label}</span>
+    <div className="flex flex-col items-end">
+      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 ${config.bg} ${config.border}`}>
+        <span className={`text-xl font-bold ${config.text}`}>{config.icon}</span>
+        <span className={`font-semibold ${config.text}`}>{config.label}</span>
+      </div>
+      <span className="text-xs text-gray-400 mt-1">Based on disclosed info</span>
     </div>
   );
 };
@@ -155,7 +169,8 @@ const SeverityBadge = ({ severity }: { severity: string }) => {
   );
 };
 
-const DonutChart = ({ value, max, label, color = 'emerald' }: { value: number; max: number; label: string; color?: string }) => {
+const DonutChart = ({ value, max, label, color = 'emerald', showTooltip = false }: { value: number; max: number; label: string; color?: string; showTooltip?: boolean }) => {
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
   const colors: Record<string, { stroke: string; bg: string }> = {
     emerald: { stroke: '#10b981', bg: '#d1fae5' },
@@ -164,7 +179,7 @@ const DonutChart = ({ value, max, label, color = 'emerald' }: { value: number; m
   };
   const c = colors[color] || colors.emerald;
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center relative">
       <div className="relative w-24 h-24">
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
           <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke={c.bg} strokeWidth="3" />
@@ -174,15 +189,39 @@ const DonutChart = ({ value, max, label, color = 'emerald' }: { value: number; m
           <span className="text-lg font-bold text-gray-900">{Math.round(percentage)}%</span>
         </div>
       </div>
-      <span className="mt-2 text-xs text-gray-500 text-center">{label}</span>
+      <div className="mt-2 flex items-center gap-1">
+        <span className="text-xs text-gray-500 text-center">{label}</span>
+        {showTooltip && (
+          <button 
+            onClick={() => setTooltipOpen(!tooltipOpen)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        )}
+      </div>
+      {tooltipOpen && (
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-gray-900 text-white text-xs rounded-lg p-3 z-50 shadow-lg">
+          <div className="font-medium mb-2">Reserve/Unit Health Calculation</div>
+          <ul className="space-y-1 text-gray-300">
+            <li>• Reserve balance ÷ total units</li>
+            <li>• Above $5,000/unit = Healthy (green)</li>
+            <li>• $2,000-$5,000/unit = Adequate (amber)</li>
+            <li>• Below $2,000/unit = Low (red)</li>
+          </ul>
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-b-gray-900" />
+        </div>
+      )}
     </div>
   );
 };
 
-const CollapsibleSection = ({ title, icon, children, defaultOpen = true, itemCount, warningCount = 0 }: any) => {
+const CollapsibleSection = ({ title, icon, children, defaultOpen = true, itemCount, warningCount = 0, id }: any) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+    <div id={id} className="border border-gray-200 rounded-lg overflow-hidden bg-white scroll-mt-20">
       <button onClick={() => setIsOpen(!isOpen)} className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
         <div className="flex items-center gap-3">
           <span className="text-lg">{icon}</span>
@@ -203,20 +242,39 @@ const CollapsibleSection = ({ title, icon, children, defaultOpen = true, itemCou
   );
 };
 
-const PageBadge = ({ page, onClick }: { page: number; onClick?: () => void }) => (
-  <span 
-    onClick={onClick}
-    className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded ${onClick ? 'hover:bg-blue-100 cursor-pointer transition-colors' : ''}`}
-    title={`Source: Page ${page}`}
-  >
-    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    </svg>
-    p.{page}
-  </span>
-);
+const PageBadge = ({ page, onClick, onCopy }: { page: number; onClick?: () => void; onCopy?: () => void }) => {
+  const [showCopyMenu, setShowCopyMenu] = useState(false);
+  return (
+    <div className="relative">
+      <span 
+        onClick={onClick}
+        onContextMenu={(e) => { e.preventDefault(); setShowCopyMenu(!showCopyMenu); }}
+        className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded ${onClick ? 'hover:bg-blue-100 cursor-pointer transition-colors' : ''}`}
+        title={`Source: Page ${page} (right-click to copy)`}
+      >
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        p.{page}
+      </span>
+      {showCopyMenu && (
+        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 min-w-[140px]">
+          <button 
+            onClick={() => { onCopy?.(); setShowCopyMenu(false); }}
+            className="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            Copy citation
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
-const ItemRow = ({ item, onPageClick }: { item: any; onPageClick?: (page: number) => void }) => (
+const ItemRow = ({ item, onPageClick, onCopyCitation }: { item: any; onPageClick?: (page: number) => void; onCopyCitation?: (text: string) => void }) => (
   <div className={`flex items-start gap-3 py-3 px-3 -mx-3 rounded-lg hover:bg-gray-50 ${item.status === 'warning' || item.status === 'error' ? 'bg-amber-50/50' : ''}`}>
     <StatusIcon status={item.status} />
     <div className="flex-1 min-w-0">
@@ -230,36 +288,36 @@ const ItemRow = ({ item, onPageClick }: { item: any; onPageClick?: (page: number
       )}
     </div>
     {item.page && (
-      <PageBadge page={item.page} onClick={onPageClick ? () => onPageClick(item.page) : undefined} />
+      <PageBadge 
+        page={item.page} 
+        onClick={onPageClick ? () => onPageClick(item.page) : undefined}
+        onCopy={() => onCopyCitation?.(`${item.label}: ${item.value} (p.${item.page})`)}
+      />
     )}
   </div>
 );
 
-const IssueCard = ({ issue, onPageClick }: { issue: any; onPageClick?: (page: number) => void }) => {
-  const [expanded, setExpanded] = useState(false);
+const IssueCard = ({ issue, onPageClick, onCopyCitation, defaultExpanded = false }: { issue: any; onPageClick?: (page: number) => void; onCopyCitation?: (text: string) => void; defaultExpanded?: boolean }) => {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const borderColor: Record<string, string> = { high: 'border-red-200 bg-red-50', warning: 'border-amber-200 bg-amber-50', low: 'border-blue-200 bg-blue-50' };
   return (
     <div className={`border rounded-lg overflow-hidden ${borderColor[issue.severity] || ''}`}>
       <button onClick={() => setExpanded(!expanded)} className="w-full p-4 text-left flex items-start gap-3">
         <SeverityBadge severity={issue.severity} />
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-medium text-gray-900">{issue.title}</h4>
             {issue.page && (
-              <span 
-                onClick={(e) => { e.stopPropagation(); onPageClick?.(issue.page); }}
-                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded cursor-pointer transition-colors"
-              >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                p.{issue.page}
-              </span>
+              <PageBadge 
+                page={issue.page} 
+                onClick={() => { onPageClick?.(issue.page); }}
+                onCopy={() => onCopyCitation?.(`${issue.title}: ${issue.finding} (p.${issue.page})`)}
+              />
             )}
           </div>
           <p className="mt-1 text-sm text-gray-600 line-clamp-2">{issue.finding}</p>
         </div>
-        <svg className={`w-5 h-5 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -285,13 +343,46 @@ const IssueCard = ({ issue, onPageClick }: { issue: any; onPageClick?: (page: nu
               <blockquote className="text-sm text-gray-600 italic border-l-2 border-gray-300 pl-3">&ldquo;{issue.quote}&rdquo;</blockquote>
             </div>
           )}
-          {issue.page && (
-            <div className="text-xs text-gray-500">
-              Found on page {issue.page} of the certificate
-            </div>
-          )}
         </div>
       )}
+    </div>
+  );
+};
+
+// Jump Navigation Component
+const JumpNavigation = ({ activeSection }: { activeSection: string }) => {
+  const sections = [
+    { id: 'action-list', label: 'Action List', icon: '📋' },
+    { id: 'issues', label: 'Issues', icon: '🚩' },
+    { id: 'reserve_fund', label: 'Reserve Fund', icon: '🏦' },
+    { id: 'insurance', label: 'Insurance', icon: '🛡️' },
+    { id: 'legal_proceedings', label: 'Legal', icon: '⚖️' },
+    { id: 'management', label: 'Governance', icon: '👥' },
+  ];
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {sections.map((section) => (
+        <button
+          key={section.id}
+          onClick={() => scrollToSection(section.id)}
+          className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+            activeSection === section.id 
+              ? 'bg-blue-100 text-blue-700' 
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <span className="mr-1">{section.icon}</span>
+          {section.label}
+        </button>
+      ))}
     </div>
   );
 };
@@ -301,6 +392,10 @@ export default function DemoPage() {
   const router = useRouter();
   const [showLetterModal, setShowLetterModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedText, setCopiedText] = useState('');
+  const [showMissingModal, setShowMissingModal] = useState(false);
+  const [activeSection, setActiveSection] = useState('action-list');
+  const [showStickyCTA, setShowStickyCTA] = useState(false);
   const letterRef = useRef<HTMLTextAreaElement>(null);
 
   const analysis = DEMO_ANALYSIS;
@@ -308,10 +403,37 @@ export default function DemoPage() {
   const sectionIcons: Record<string, string> = { common_expenses: '💰', reserve_fund: '🏦', special_assessments: '📋', legal_proceedings: '⚖️', insurance: '🛡️', management: '👥', rules: '📜', building_notes: '🏢' };
   const getSectionWarnings = (section: any) => section.items.filter((i: any) => i.status === 'warning' || i.status === 'error').length;
 
+  // Track scroll position for sticky CTA and active section
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyCTA(window.scrollY > 800);
+      
+      // Update active section based on scroll position
+      const sections = ['action-list', 'issues', 'reserve_fund', 'insurance', 'legal_proceedings', 'management'];
+      for (const sectionId of sections.reverse()) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 200) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const copyToClipboard = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedText(text.slice(0, 30) + '...');
+    setTimeout(() => { setCopied(false); setCopiedText(''); }, 2000);
+  }, []);
+
+  const handlePageClick = useCallback((page: number) => {
+    alert(`In the full version, this would open the PDF viewer to page ${page}.`);
   }, []);
 
   const generateClientLetter = () => {
@@ -320,16 +442,25 @@ export default function DemoPage() {
 We have completed our review of the Status Certificate for ${analysis.corporation} located at ${analysis.address}.
 
 SUMMARY
-The certificate dated ${analysis.certificate_date} (expiring ${analysis.expiry_date}) indicates no significant concerns.
+The certificate dated ${analysis.certificate_date} (expiring ${analysis.expiry_date}) indicates low flagged risk based on disclosed information.
 
 KEY FINDINGS
-• Reserve Fund Study Approaching Expiry: The study is 2.5 years old - approaching 3-year limit
-• Flood Deductible at Threshold: $25,000 deductible may affect liability
+• Reserve Fund Study Approaching Expiry: The study is 2.5 years old - approaching 3-year limit (p.12)
+• Flood Deductible at Threshold: $25,000 deductible may affect liability (p.15)
+
+QUESTIONS TO ASK PROPERTY MANAGER
+• When is the next Reserve Fund Study scheduled? (Current study approaching 3-year limit)
+• Confirm flood deductible applies to common elements only
+• Request copy of most recent AGM minutes
 
 EXTRACTED DATA SUMMARY
 • Total items reviewed: ${analysis.summary.total}
 • Items verified: ${analysis.summary.verified}
 • Items requiring attention: ${analysis.summary.warnings}
+• Information not disclosed: ${analysis.summary.missing}
+
+DISCLAIMER
+This report provides information extraction and issue spotting only. It is not legal advice. Please consult with your legal counsel regarding any concerns.
 
 Please contact us if you have any questions.
 
@@ -337,17 +468,20 @@ Best regards,
 [Your Name]`;
   };
 
+  // Count high severity issues
+  const highSeverityIssues = analysis.issues.filter(i => ['high', 'warning'].includes(i.severity));
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Demo Banner */}
       <div className="bg-blue-600 text-white text-center py-2 px-4 text-sm">
         <span className="font-medium">📋 Demo Report</span> — This is a sample analysis from a real Ontario status certificate.{' '}
-        <button onClick={() => router.push('/')} className="underline hover:no-underline">
+        <button onClick={() => router.push('/analyze')} className="underline hover:no-underline">
           Upload your own →
         </button>
       </div>
 
-      {/* Header */}
+      {/* Header with Export Controls */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -357,26 +491,124 @@ Best regards,
               </svg>
             </button>
             <div>
-              <h1 className="font-semibold text-gray-900">{analysis.corporation}</h1>
-              <p className="text-sm text-gray-500">{analysis.address}</p>
+              <h1 className="font-semibold text-gray-900 text-sm sm:text-base">{analysis.corporation}</h1>
+              <p className="text-xs sm:text-sm text-gray-500">{analysis.address}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowLetterModal(true)} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
-              📧 Client Letter
+            <button 
+              onClick={() => window.print()} 
+              className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 hidden sm:flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print
             </button>
-            <button onClick={() => router.push('/')} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+            <button 
+              onClick={() => copyToClipboard(window.location.href)} 
+              className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 hidden sm:flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share
+            </button>
+            <button onClick={() => setShowLetterModal(true)} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center gap-1">
+              <span>📧</span>
+              <span className="hidden sm:inline">Client Letter</span>
+            </button>
+            <button onClick={() => router.push('/analyze')} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700">
               Try Your Own
             </button>
           </div>
         </div>
+        {/* Jump Navigation */}
+        <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
+          <JumpNavigation activeSection={activeSection} />
+        </div>
       </header>
 
+      {/* Toast notification for copy */}
+      {copied && (
+        <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2">
+          <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Copied to clipboard
+        </div>
+      )}
+
       {/* Main */}
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+        
+        {/* Action List - Sticky at top */}
+        <div id="action-list" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-32">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg">📋</span>
+            <h2 className="text-lg font-semibold text-gray-900">Action List</h2>
+            <span className="text-xs text-gray-400">(Quick scan before diving in)</span>
+          </div>
+          
+          <div className="grid sm:grid-cols-3 gap-4">
+            <button 
+              onClick={() => document.getElementById('issues')?.scrollIntoView({ behavior: 'smooth' })}
+              className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-left hover:bg-amber-100 transition-colors"
+            >
+              <div className="text-2xl font-bold text-amber-700">{analysis.issues.length}</div>
+              <div className="text-sm text-amber-800">Flagged items to review</div>
+            </button>
+            
+            <button 
+              onClick={() => document.getElementById('questions')?.scrollIntoView({ behavior: 'smooth' })}
+              className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-left hover:bg-blue-100 transition-colors"
+            >
+              <div className="text-2xl font-bold text-blue-700">{analysis.questions_to_ask.length}</div>
+              <div className="text-sm text-blue-800">Questions to ask manager</div>
+            </button>
+            
+            <button 
+              onClick={() => setShowMissingModal(true)}
+              className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-left hover:bg-gray-100 transition-colors"
+            >
+              <div className="text-2xl font-bold text-gray-500">{analysis.missing_items.length}</div>
+              <div className="text-sm text-gray-600">Missing / Not disclosed</div>
+            </button>
+          </div>
+        </div>
+
+        {/* Decision Readiness Box */}
+        {highSeverityIssues.length > 0 && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-6">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚡</span>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Decision Readiness</h3>
+                <p className="text-sm text-gray-600 mb-3">Based on disclosed info, here's what would typically require attention before going firm:</p>
+                <ul className="space-y-2">
+                  {highSeverityIssues.slice(0, 3).map(issue => (
+                    <li key={issue.id} className="flex items-start gap-2 text-sm">
+                      <SeverityBadge severity={issue.severity} />
+                      <span className="text-gray-700">{issue.title}</span>
+                      {issue.page && (
+                        <button 
+                          onClick={() => handlePageClick(issue.page)}
+                          className="text-blue-600 hover:text-blue-700 text-xs"
+                        >
+                          p.{issue.page}
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Executive Summary */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-start justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Executive Summary</h2>
               <p className="text-sm text-gray-500 mt-1">Certificate dated {analysis.certificate_date} • Expires {analysis.expiry_date}</p>
@@ -384,7 +616,7 @@ Best regards,
             <RiskBadge rating={analysis.risk_rating} />
           </div>
 
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-3 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-gray-900">{analysis.summary.total}</div>
               <div className="text-xs text-gray-500">Items Analyzed</div>
@@ -397,16 +629,19 @@ Best regards,
               <div className="text-2xl font-bold text-amber-600">{analysis.summary.warnings}</div>
               <div className="text-xs text-amber-700">Warnings</div>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <button 
+              onClick={() => setShowMissingModal(true)}
+              className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
               <div className="text-2xl font-bold text-gray-400">{analysis.summary.missing}</div>
-              <div className="text-xs text-gray-500">Not Found</div>
-            </div>
+              <div className="text-xs text-gray-500 underline">Missing / Not disclosed</div>
+            </button>
           </div>
 
           <div className="border-t border-gray-200 pt-6">
             <h3 className="text-sm font-medium text-gray-700 mb-4">Financial Overview</h3>
             <div className="flex items-center gap-6">
-              <DonutChart value={reservePerUnit} max={10000} label="Reserve/Unit Health" color="emerald" />
+              <DonutChart value={reservePerUnit} max={10000} label="Reserve/Unit Health" color="emerald" showTooltip />
               <div>
                 <div className="text-2xl font-bold text-gray-900">${reservePerUnit.toLocaleString()}</div>
                 <div className="text-sm text-gray-500">per unit</div>
@@ -414,16 +649,58 @@ Best regards,
               </div>
             </div>
           </div>
+          
+          <p className="text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
+            Issue severity summary based on disclosed information. Not legal advice.
+          </p>
         </div>
 
         {/* Issues */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div id="issues" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-32">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg">🚩</span>
             <h2 className="text-lg font-semibold text-gray-900">Issues Flagged ({analysis.issues.length})</h2>
           </div>
           <div className="space-y-3">
-            {analysis.issues.map(issue => <IssueCard key={issue.id} issue={issue} />)}
+            {analysis.issues.map((issue, index) => (
+              <IssueCard 
+                key={issue.id} 
+                issue={issue} 
+                onPageClick={handlePageClick}
+                onCopyCitation={copyToClipboard}
+                defaultExpanded={index === 0 && ['high', 'warning'].includes(issue.severity)}
+              />
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-4">
+            Information extraction and issue spotting only. Not legal advice.
+          </p>
+        </div>
+
+        {/* Questions to Ask */}
+        <div id="questions" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-32">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg">❓</span>
+            <h2 className="text-lg font-semibold text-gray-900">Questions to Ask Property Manager</h2>
+          </div>
+          <div className="space-y-3">
+            {analysis.questions_to_ask.map((q) => (
+              <div key={q.id} className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-gray-900">{q.question}</p>
+                    <p className="text-sm text-gray-600 mt-1">{q.context}</p>
+                  </div>
+                  {q.page && (
+                    <PageBadge 
+                      page={q.page} 
+                      onClick={() => handlePageClick(q.page!)}
+                      onCopy={() => copyToClipboard(`${q.question} (see p.${q.page})`)}
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -432,6 +709,7 @@ Best regards,
           {Object.entries(analysis.sections).map(([key, section]) => (
             <CollapsibleSection
               key={key}
+              id={key}
               title={section.title}
               icon={sectionIcons[key] || '📄'}
               itemCount={section.items.length}
@@ -439,41 +717,118 @@ Best regards,
               defaultOpen={getSectionWarnings(section) > 0 || key === 'common_expenses'}
             >
               <div className="divide-y divide-gray-100">
-                {section.items.map((item: any) => <ItemRow key={item.id} item={item} />)}
+                {section.items.map((item: any) => (
+                  <ItemRow 
+                    key={item.id} 
+                    item={item} 
+                    onPageClick={handlePageClick}
+                    onCopyCitation={copyToClipboard}
+                  />
+                ))}
               </div>
             </CollapsibleSection>
           ))}
         </div>
 
-        {/* CTA */}
+        {/* Bottom CTA */}
         <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to analyze your own certificate?</h3>
           <p className="text-gray-600 mb-4">Upload a PDF and get a detailed breakdown in under 2 minutes.</p>
-          <button onClick={() => router.push('/')} className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
-            Upload Your Certificate
+          <button onClick={() => router.push('/analyze')} className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
+            Analyze Status Certificate
           </button>
         </div>
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-400 py-4">
-          Demo report • Real data from TSCC 1511 certificate
-        </div>
+        <footer className="text-center text-sm text-gray-500 pb-8">
+          <p>Demo report generated from TSCC 1511 status certificate.</p>
+          <p className="mt-1">Information extraction and issue spotting only. Not legal advice.</p>
+        </footer>
       </div>
 
-      {/* Letter Modal */}
+      {/* Sticky CTA */}
+      {showStickyCTA && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 shadow-lg">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <span className="text-sm text-gray-600 hidden sm:block">Ready to analyze your own certificate?</span>
+            <button 
+              onClick={() => router.push('/analyze')} 
+              className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
+            >
+              Analyze Status Certificate
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Missing Items Modal */}
+      {showMissingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900">Missing / Not Disclosed ({analysis.missing_items.length})</h3>
+              <button onClick={() => setShowMissingModal(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto">
+              <p className="text-sm text-gray-600 mb-4">
+                The following items were not found in the certificate package. Consider requesting these from the property manager.
+              </p>
+              <div className="space-y-3">
+                {analysis.missing_items.map((item) => (
+                  <div key={item.id} className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="font-medium text-gray-900">{item.label}</div>
+                    <div className="text-sm text-gray-600">{item.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <button 
+                onClick={() => setShowMissingModal(false)} 
+                className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Client Letter Modal */}
       {showLetterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowLetterModal(false)}>
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">Client Letter</h3>
-              <button onClick={() => setShowLetterModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setShowLetterModal(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <div className="p-4 flex-1 overflow-auto">
-              <textarea ref={letterRef} defaultValue={generateClientLetter()} className="w-full h-80 p-4 border border-gray-200 rounded-lg text-sm font-mono resize-none" />
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              <textarea
+                ref={letterRef}
+                className="w-full h-96 p-4 border border-gray-200 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                defaultValue={generateClientLetter()}
+              />
             </div>
-            <div className="p-4 border-t border-gray-200 flex gap-2">
-              <button onClick={() => copyToClipboard(letterRef.current?.value || '')} className={`flex-1 py-2 px-4 rounded-lg font-medium ${copied ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                {copied ? '✓ Copied!' : '📋 Copy to Clipboard'}
+            <div className="p-4 border-t border-gray-200 flex gap-2 justify-end bg-gray-50">
+              <button 
+                onClick={() => copyToClipboard(letterRef.current?.value || '')} 
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                Copy
+              </button>
+              <button onClick={() => setShowLetterModal(false)} className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+                Close
               </button>
             </div>
           </div>
