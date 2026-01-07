@@ -1,11 +1,14 @@
+// Polyfill for Node < 22 (Promise.withResolvers support)
+import "@ungap/with-resolvers";
 import pdf from 'pdf-parse';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { createCanvas, Canvas, CanvasRenderingContext2D } from 'canvas';
 import Tesseract from 'tesseract.js';
 
-// Disable worker for Node.js environment
-if (typeof window === 'undefined') {
-  (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '';
+// Dynamic import for pdfjs-dist to avoid webpack bundling issues
+async function getPdfjs() {
+  // @ts-ignore - dynamic import for server compatibility
+  const pdfjsLib = await import('pdfjs-dist/build/pdf.mjs');
+  return pdfjsLib;
 }
 
 export interface PDFParseResult {
@@ -85,6 +88,7 @@ export async function parsePDF(buffer: Buffer): Promise<PDFParseResult> {
 const MAX_OCR_PAGES = 50;
 
 async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
+  const pdfjsLib = await getPdfjs();
   const uint8Array = new Uint8Array(buffer);
   const loadingTask = pdfjsLib.getDocument({
     data: uint8Array,
