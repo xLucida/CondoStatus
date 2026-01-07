@@ -15,18 +15,21 @@ export default function LandingPage() {
         <div className="container-wide relative section-padding">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="max-w-xl">
-              <h1 className="font-serif text-display text-navy-900 mb-6 animate-fade-in-up text-balance">
-                Catch the surprises
-                <span className="block text-brass-600">before you go firm.</span>
+              <h1 className="font-serif text-display text-navy-900 mb-6 animate-fade-in-up">
+                Ontario status certificate review in under 2 minutes.
               </h1>
               
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed animate-fade-in-up">
-                Upload a status certificate. Get a standardized risk report with red flags, key numbers, and page citations in under 2 minutes.
+              <p className="text-lg text-slate-600 mb-4 leading-relaxed animate-fade-in-up">
+                Red flags, key numbers, missing disclosures, and page-cited findings—exportable for your client file.
+              </p>
+              
+              <p className="text-sm text-slate-500 mb-8 animate-fade-in-up">
+                Works with the Ontario standard status certificate form and attachments.
               </p>
               
               <div id="hero-cta" className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 animate-fade-in-up">
                 <Link href="/analyze" className="btn-accent text-base px-8 py-4">
-                  Analyze Certificate
+                  Analyze Status Certificate
                   <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
@@ -37,31 +40,16 @@ export default function LandingPage() {
               </div>
               
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 animate-fade-in border-t border-slate-100 pt-6">
-                <span className="flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  SOC 2-ready
-                </span>
-                <span className="text-slate-300">|</span>
-                <span className="flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
-                  256-bit encryption
-                </span>
-                <span className="text-slate-300">|</span>
-                <span className="flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  Auto-delete in 7 days
-                </span>
+                <span>Page citations</span>
+                <span className="text-slate-300">·</span>
+                <span>Auto-delete controls</span>
+                <span className="text-slate-300">·</span>
+                <span>No training on your data</span>
               </div>
             </div>
             
-            <div className="relative animate-fade-in-up hidden lg:block">
-              <div className="absolute -inset-4 bg-gradient-to-br from-brass-100/50 to-navy-100/30 rounded-3xl blur-2xl" />
+            <div className="relative animate-fade-in-up lg:block">
+              <div className="absolute -inset-4 bg-gradient-to-br from-brass-100/50 to-navy-100/30 rounded-3xl blur-2xl hidden lg:block" />
               <div className="relative bg-white rounded-2xl shadow-elevated border border-slate-200 overflow-hidden">
                 <div className="bg-navy-900 px-6 py-4 flex items-center gap-3">
                   <div className="flex gap-2">
@@ -168,15 +156,15 @@ export default function LandingPage() {
           
           <div className="grid md:grid-cols-4 gap-8">
             {[
-              { icon: '🚩', title: 'Red flags surfaced', desc: 'Critical issues ranked by severity with page citations' },
-              { icon: '💰', title: 'Key numbers extracted', desc: 'Fees, reserves, insurance, arrears—all in one place' },
-              { icon: '📄', title: 'Page citations', desc: 'Every finding linked to source page for verification' },
-              { icon: '🗑️', title: 'Auto-delete', desc: 'Documents deleted after 7 days, or instantly on request' },
+              { icon: '🚩', title: 'Red flags surfaced', desc: 'Critical issues ranked by severity with page citations.' },
+              { icon: '💰', title: 'Key numbers extracted', desc: 'Fees, reserves, insurance, arrears—all in one place.' },
+              { icon: '📄', title: 'Page citations', desc: 'Every finding links to a source page for verification.' },
+              { icon: '🗑️', title: 'Auto-delete controls', desc: 'Documents deleted after 7 days, or instantly on request.' },
             ].map((item) => (
               <div key={item.title} className="text-center p-6 rounded-xl bg-slate-50 hover:bg-cream-50 transition-colors">
                 <div className="text-4xl mb-4">{item.icon}</div>
                 <h3 className="font-serif font-semibold text-navy-900 mb-2 text-lg">{item.title}</h3>
-                <p className="text-slate-600">{item.desc}</p>
+                <p className="text-slate-700 text-base leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -213,6 +201,9 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
+              <p className="text-xs text-slate-400 mt-6">
+                Information extraction and issue spotting only. Not legal advice.
+              </p>
             </div>
             
             <div className="card-elevated p-8">
@@ -419,7 +410,7 @@ export default function LandingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <h3 className="font-serif font-semibold text-cream-100 mb-3">SOC 2-ready infrastructure</h3>
+              <h3 className="font-serif font-semibold text-cream-100 mb-3">Security-first infrastructure</h3>
               <p className="text-slate-400 text-sm leading-relaxed">256-bit encryption in transit and at rest. Enterprise-grade security.</p>
             </div>
           </div>
@@ -440,7 +431,7 @@ export default function LandingPage() {
               href="/analyze"
               className="btn-accent text-base px-8 py-4"
             >
-              Analyze Certificate
+              Analyze Status Certificate
             </Link>
             <Link 
               href="/demo"

@@ -66,7 +66,7 @@ export default function Navigation() {
             onClick={scrollToHero}
             className="btn-primary"
           >
-            Analyze Certificate
+            Analyze Status Certificate
           </Link>
           <button 
             className="md:hidden p-2 text-slate-600"
