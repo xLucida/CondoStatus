@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeStatusCertificate } from '@/lib/claude-analyzer';
+import { parsePDF } from '@/lib/pdf-parser';
 
 export const maxDuration = 60; // Allow up to 60 seconds for analysis
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -55,8 +56,7 @@ export async function POST(request: NextRequest) {
     const pdfBuffer = Buffer.from(file, 'base64');
 
     // Extract text from PDF
-    const pdfParse = (await import('pdf-parse')).default;
-    const pdfData = await pdfParse(pdfBuffer);
+    const pdfData = await parsePDF(pdfBuffer);
     const extractedText = pdfData.text;
 
     if (!extractedText || extractedText.length < 100) {
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       analysis,
       fileName,
       extractedTextLength: extractedText.length,
-      pageCount: pdfData.numpages,
+      pageCount: pdfData.pageCount,
     });
 
   } catch (error) {
