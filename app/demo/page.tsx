@@ -186,15 +186,15 @@ const DonutChart = ({ value, max, label, color = 'emerald', showTooltip = false 
           <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke={c.stroke} strokeWidth="3" strokeDasharray={`${percentage} ${100 - percentage}`} strokeLinecap="round" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold text-gray-900">{Math.round(percentage)}%</span>
+          <span className="text-lg font-bold text-navy-900">{Math.round(percentage)}%</span>
         </div>
       </div>
       <div className="mt-2 flex items-center gap-1">
-        <span className="text-xs text-gray-500 text-center">{label}</span>
+        <span className="text-xs text-slate-500 text-center">{label}</span>
         {showTooltip && (
           <button 
             onClick={() => setTooltipOpen(!tooltipOpen)}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-slate-400 hover:text-slate-600"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -203,15 +203,15 @@ const DonutChart = ({ value, max, label, color = 'emerald', showTooltip = false 
         )}
       </div>
       {tooltipOpen && (
-        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-gray-900 text-white text-xs rounded-lg p-3 z-50 shadow-lg">
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-navy-900 text-cream-100 text-xs rounded-lg p-3 z-50 shadow-lg">
           <div className="font-medium mb-2">Reserve/Unit Health Calculation</div>
-          <ul className="space-y-1 text-gray-300">
+          <ul className="space-y-1 text-cream-200">
             <li>• Reserve balance ÷ total units</li>
             <li>• Above $5,000/unit = Healthy (green)</li>
             <li>• $2,000-$5,000/unit = Adequate (amber)</li>
             <li>• Below $2,000/unit = Low (red)</li>
           </ul>
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-b-gray-900" />
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-b-navy-900" />
         </div>
       )}
     </div>
@@ -221,23 +221,23 @@ const DonutChart = ({ value, max, label, color = 'emerald', showTooltip = false 
 const CollapsibleSection = ({ title, icon, children, defaultOpen = true, itemCount, warningCount = 0, id }: any) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
-    <div id={id} className="border border-gray-200 rounded-lg overflow-hidden bg-white scroll-mt-20">
-      <button onClick={() => setIsOpen(!isOpen)} className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
+    <div id={id} className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-card scroll-mt-20">
+      <button onClick={() => setIsOpen(!isOpen)} className="w-full px-4 py-3 flex items-center justify-between bg-cream-50 hover:bg-cream-100 transition-colors">
         <div className="flex items-center gap-3">
           <span className="text-lg">{icon}</span>
-          <span className="font-semibold text-gray-900">{title}</span>
-          {itemCount !== undefined && <span className="text-xs text-gray-500">({itemCount} items)</span>}
+          <span className="font-serif font-semibold text-navy-900">{title}</span>
+          {itemCount !== undefined && <span className="text-xs text-slate-500">({itemCount} items)</span>}
           {warningCount > 0 && (
             <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
               {warningCount} warning{warningCount !== 1 ? 's' : ''}
             </span>
           )}
         </div>
-        <svg className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {isOpen && <div className="p-4 border-t border-gray-200">{children}</div>}
+      {isOpen && <div className="p-4 border-t border-slate-200">{children}</div>}
     </div>
   );
 };
@@ -249,7 +249,7 @@ const PageBadge = ({ page, onClick, onCopy }: { page: number; onClick?: () => vo
       <span 
         onClick={onClick}
         onContextMenu={(e) => { e.preventDefault(); setShowCopyMenu(!showCopyMenu); }}
-        className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded ${onClick ? 'hover:bg-blue-100 cursor-pointer transition-colors' : ''}`}
+        className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-navy-700 bg-brass-100 rounded ${onClick ? 'hover:bg-brass-200 cursor-pointer transition-colors' : ''}`}
         title={`Source: Page ${page} (right-click to copy)`}
       >
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -258,10 +258,10 @@ const PageBadge = ({ page, onClick, onCopy }: { page: number; onClick?: () => vo
         p.{page}
       </span>
       {showCopyMenu && (
-        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 min-w-[140px]">
+        <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1 min-w-[140px]">
           <button 
             onClick={() => { onCopy?.(); setShowCopyMenu(false); }}
-            className="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+            className="w-full px-3 py-1.5 text-left text-sm text-slate-700 hover:bg-cream-50 flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -275,14 +275,14 @@ const PageBadge = ({ page, onClick, onCopy }: { page: number; onClick?: () => vo
 };
 
 const ItemRow = ({ item, onPageClick, onCopyCitation }: { item: any; onPageClick?: (page: number) => void; onCopyCitation?: (text: string) => void }) => (
-  <div className={`flex items-start gap-3 py-3 px-3 -mx-3 rounded-lg hover:bg-gray-50 ${item.status === 'warning' || item.status === 'error' ? 'bg-amber-50/50' : ''}`}>
+  <div className={`flex items-start gap-3 py-3 px-3 -mx-3 rounded-lg hover:bg-cream-50 ${item.status === 'warning' || item.status === 'error' ? 'bg-amber-50/50' : ''}`}>
     <StatusIcon status={item.status} />
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600">{item.label}</span>
+        <span className="text-sm text-slate-600">{item.label}</span>
         <ConfidenceBar level={item.confidence} />
       </div>
-      <div className="mt-0.5 font-medium text-gray-900 break-words">{item.value}</div>
+      <div className="mt-0.5 font-medium text-navy-900 break-words">{item.value}</div>
       {item.reason && item.status !== 'ok' && (
         <div className="mt-1 text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded inline-block">{item.reason}</div>
       )}
@@ -299,14 +299,14 @@ const ItemRow = ({ item, onPageClick, onCopyCitation }: { item: any; onPageClick
 
 const IssueCard = ({ issue, onPageClick, onCopyCitation, defaultExpanded = false }: { issue: any; onPageClick?: (page: number) => void; onCopyCitation?: (text: string) => void; defaultExpanded?: boolean }) => {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const borderColor: Record<string, string> = { high: 'border-red-200 bg-red-50', warning: 'border-amber-200 bg-amber-50', low: 'border-blue-200 bg-blue-50' };
+  const borderColor: Record<string, string> = { high: 'border-red-200 bg-red-50', warning: 'border-amber-200 bg-amber-50', low: 'border-slate-200 bg-cream-50' };
   return (
     <div className={`border rounded-lg overflow-hidden ${borderColor[issue.severity] || ''}`}>
       <button onClick={() => setExpanded(!expanded)} className="w-full p-4 text-left flex items-start gap-3">
         <SeverityBadge severity={issue.severity} />
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="font-medium text-gray-900">{issue.title}</h4>
+            <h4 className="font-medium text-navy-900">{issue.title}</h4>
             {issue.page && (
               <PageBadge 
                 page={issue.page} 
@@ -315,32 +315,32 @@ const IssueCard = ({ issue, onPageClick, onCopyCitation, defaultExpanded = false
               />
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-600 line-clamp-2">{issue.finding}</p>
+          <p className="mt-1 text-sm text-slate-600 line-clamp-2">{issue.finding}</p>
         </div>
-        <svg className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className={`w-5 h-5 text-slate-400 transition-transform flex-shrink-0 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-200/50 pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t border-slate-200/50 pt-3">
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Finding</div>
-            <p className="text-sm text-gray-700">{issue.finding}</p>
+            <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Finding</div>
+            <p className="text-sm text-slate-700">{issue.finding}</p>
           </div>
           {issue.regulation && (
             <div>
-              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Regulation</div>
-              <p className="text-sm text-gray-700">{issue.regulation}</p>
+              <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Regulation</div>
+              <p className="text-sm text-slate-700">{issue.regulation}</p>
             </div>
           )}
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Recommendation</div>
-            <p className="text-sm text-gray-700">{issue.recommendation}</p>
+            <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Recommendation</div>
+            <p className="text-sm text-slate-700">{issue.recommendation}</p>
           </div>
           {issue.quote && (
             <div>
-              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Source Quote</div>
-              <blockquote className="text-sm text-gray-600 italic border-l-2 border-gray-300 pl-3">&ldquo;{issue.quote}&rdquo;</blockquote>
+              <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Source Quote</div>
+              <blockquote className="text-sm text-slate-600 italic border-l-2 border-slate-300 pl-3">&ldquo;{issue.quote}&rdquo;</blockquote>
             </div>
           )}
         </div>
@@ -531,7 +531,7 @@ Best regards,
 
       {/* Toast notification for copy */}
       {copied && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2">
+        <div className="fixed bottom-4 right-4 bg-navy-900 text-cream-100 px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2">
           <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
@@ -589,11 +589,11 @@ Best regards,
                   {highSeverityIssues.slice(0, 3).map(issue => (
                     <li key={issue.id} className="flex items-start gap-2 text-sm">
                       <SeverityBadge severity={issue.severity} />
-                      <span className="text-gray-700">{issue.title}</span>
+                      <span className="text-slate-700">{issue.title}</span>
                       {issue.page && (
                         <button 
                           onClick={() => handlePageClick(issue.page)}
-                          className="text-blue-600 hover:text-blue-700 text-xs"
+                          className="text-brass-600 hover:text-brass-700 text-xs"
                         >
                           p.{issue.page}
                         </button>
@@ -617,9 +617,9 @@ Best regards,
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <div className="text-2xl font-bold text-gray-900">{analysis.summary.total}</div>
-              <div className="text-xs text-gray-500">Items Analyzed</div>
+            <div className="text-center p-3 bg-slate-50 rounded-lg">
+              <div className="text-2xl font-bold text-navy-900">{analysis.summary.total}</div>
+              <div className="text-xs text-slate-500">Items Analyzed</div>
             </div>
             <div className="text-center p-3 bg-emerald-50 rounded-lg">
               <div className="text-2xl font-bold text-emerald-600">{analysis.summary.verified}</div>
@@ -631,35 +631,35 @@ Best regards,
             </div>
             <button 
               onClick={() => setShowMissingModal(true)}
-              className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              className="text-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
             >
-              <div className="text-2xl font-bold text-gray-400">{analysis.summary.missing}</div>
-              <div className="text-xs text-gray-500 underline">Missing / Not disclosed</div>
+              <div className="text-2xl font-bold text-slate-400">{analysis.summary.missing}</div>
+              <div className="text-xs text-slate-500 underline">Missing / Not disclosed</div>
             </button>
           </div>
 
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Financial Overview</h3>
+          <div className="border-t border-slate-200 pt-6">
+            <h3 className="text-sm font-medium text-slate-700 mb-4">Financial Overview</h3>
             <div className="flex items-center gap-6">
               <DonutChart value={reservePerUnit} max={10000} label="Reserve/Unit Health" color="emerald" showTooltip />
               <div>
-                <div className="text-2xl font-bold text-gray-900">${reservePerUnit.toLocaleString()}</div>
-                <div className="text-sm text-gray-500">per unit</div>
+                <div className="text-2xl font-bold text-navy-900">${reservePerUnit.toLocaleString()}</div>
+                <div className="text-sm text-slate-500">per unit</div>
                 <div className="text-xs text-emerald-600 mt-1">Healthy</div>
               </div>
             </div>
           </div>
           
-          <p className="text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
+          <p className="text-xs text-slate-400 mt-4 pt-4 border-t border-slate-100">
             Issue severity summary based on disclosed information. Not legal advice.
           </p>
         </div>
 
         {/* Issues */}
-        <div id="issues" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-32">
+        <div id="issues" className="bg-white rounded-xl shadow-card border border-slate-200 p-6 scroll-mt-32">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg">🚩</span>
-            <h2 className="text-lg font-semibold text-gray-900">Issues Flagged ({analysis.issues.length})</h2>
+            <h2 className="text-lg font-serif font-semibold text-navy-900">Issues Flagged ({analysis.issues.length})</h2>
           </div>
           <div className="space-y-3">
             {analysis.issues.map((issue, index) => (
@@ -672,24 +672,24 @@ Best regards,
               />
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-4">
+          <p className="text-xs text-slate-400 mt-4">
             Information extraction and issue spotting only. Not legal advice.
           </p>
         </div>
 
         {/* Questions to Ask */}
-        <div id="questions" className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 scroll-mt-32">
+        <div id="questions" className="bg-white rounded-xl shadow-card border border-slate-200 p-6 scroll-mt-32">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg">❓</span>
-            <h2 className="text-lg font-semibold text-gray-900">Questions to Ask Property Manager</h2>
+            <h2 className="text-lg font-serif font-semibold text-navy-900">Questions to Ask Property Manager</h2>
           </div>
           <div className="space-y-3">
             {analysis.questions_to_ask.map((q) => (
-              <div key={q.id} className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+              <div key={q.id} className="p-4 bg-cream-100 border border-cream-200 rounded-lg">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-medium text-gray-900">{q.question}</p>
-                    <p className="text-sm text-gray-600 mt-1">{q.context}</p>
+                    <p className="font-medium text-navy-900">{q.question}</p>
+                    <p className="text-sm text-slate-600 mt-1">{q.context}</p>
                   </div>
                   {q.page && (
                     <PageBadge 
@@ -716,7 +716,7 @@ Best regards,
               warningCount={getSectionWarnings(section)}
               defaultOpen={getSectionWarnings(section) > 0 || key === 'common_expenses'}
             >
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-slate-100">
                 {section.items.map((item: any) => (
                   <ItemRow 
                     key={item.id} 
