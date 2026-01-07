@@ -36,15 +36,21 @@ interface Issue {
 }
 
 interface Analysis {
-  summary: { verified: number; warnings: number; missing: number; total: number };
-  sections: Record<string, Section>;
-  issues: Issue[];
-  corporation: string;
-  address: string;
-  certificate_date: string;
-  expiry_date: string;
-  risk_rating: 'GREEN' | 'YELLOW' | 'RED';
-  page_count: number;
+  summary?: { verified: number; warnings: number; missing: number; total?: number; total_items?: number };
+  sections?: Record<string, Section>;
+  issues?: Issue[];
+  corporation?: string;
+  address?: string;
+  certificate_date?: string;
+  expiry_date?: string;
+  risk_rating?: 'GREEN' | 'YELLOW' | 'RED';
+  page_count?: number;
+  error?: {
+    type: 'parse_error' | 'validation_error';
+    message: string;
+    details?: string[];
+    raw?: string;
+  };
 }
 
 // Components
@@ -225,23 +231,26 @@ const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: numbe
 };
 
 const generateClientLetter = (analysis: Analysis) => {
-  const riskText = { GREEN: 'no significant concerns', YELLOW: 'some items requiring attention', RED: 'serious concerns that require immediate attention' }[analysis.risk_rating];
-  const issues = analysis.issues.filter(i => i.severity === 'high' || i.severity === 'warning').map(i => `• ${i.title}: ${i.finding}`).join('\n');
+  const rating = analysis.risk_rating || 'YELLOW';
+  const riskText = { GREEN: 'no significant concerns', YELLOW: 'some items requiring attention', RED: 'serious concerns that require immediate attention' }[rating];
+  const issues = (analysis.issues || []).filter(i => i.severity === 'high' || i.severity === 'warning').map(i => `• ${i.title}: ${i.finding}`).join('\n');
+  const summary = analysis.summary || { total: 0, verified: 0, warnings: 0, missing: 0 };
+  const total = summary.total ?? summary.total_items ?? 0;
   return `Dear Client,
 
-We have completed our review of the Status Certificate for ${analysis.corporation} located at ${analysis.address}.
+We have completed our review of the Status Certificate for ${analysis.corporation || 'the corporation'} located at ${analysis.address || 'the subject property'}.
 
 SUMMARY
-The certificate dated ${analysis.certificate_date} (expiring ${analysis.expiry_date}) indicates ${riskText}.
+The certificate dated ${analysis.certificate_date || 'N/A'} (expiring ${analysis.expiry_date || 'N/A'}) indicates ${riskText}.
 
 KEY FINDINGS
 ${issues || '• No significant issues identified'}
 
 EXTRACTED DATA SUMMARY
-• Total items reviewed: ${analysis.summary.total}
-• Items verified: ${analysis.summary.verified}
-• Items requiring attention: ${analysis.summary.warnings}
-• Information not found: ${analysis.summary.missing}
+• Total items reviewed: ${total}
+• Items verified: ${summary.verified}
+• Items requiring attention: ${summary.warnings}
+• Information not found: ${summary.missing}
 
 Please contact us if you have any questions about these findings.
 
@@ -329,7 +338,12 @@ export default function ReportPage() {
     );
   }
 
-  const reserveSection = analysis.sections.reserve_fund;
+  const summary = analysis.summary || { total: 0, verified: 0, warnings: 0, missing: 0 };
+  const totalItems = summary.total ?? summary.total_items ?? 0;
+  const sections = analysis.sections || {};
+  const issues = analysis.issues || [];
+  const riskRating = analysis.risk_rating || 'YELLOW';
+  const reserveSection = sections.reserve_fund;
   const reservePerUnit = parseFloat(reserveSection?.items.find(i => i.key === 'reserve_per_unit')?.value.replace(/[^0-9.]/g, '') || '0');
   const getSectionWarnings = (section: Section) => section.items.filter(i => i.status === 'warning' || i.status === 'error').length;
   const sectionIcons: Record<string, string> = { common_expenses: '💰', reserve_fund: '🏦', special_assessments: '📋', legal_proceedings: '⚖️', insurance: '🛡️', management: '👥', rules: '📜', building_notes: '🏢' };
@@ -346,8 +360,8 @@ export default function ReportPage() {
               </svg>
             </button>
             <div>
-              <h1 className="font-semibold text-gray-900">{analysis.corporation}</h1>
-              <p className="text-sm text-gray-500">{analysis.address}</p>
+              <h1 className="font-semibold text-gray-900">{analysis.corporation || 'Unknown Corporation'}</h1>
+              <p className="text-sm text-gray-500">{analysis.address || 'Address unavailable'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 print:hidden">
@@ -375,29 +389,42 @@ export default function ReportPage() {
             
             {/* Executive Summary */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              {analysis.error && (
+                <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+                  <div className="font-semibold">We could not fully parse the analysis.</div>
+                  <div className="text-sm">{analysis.error.message}</div>
+                  {analysis.error.details && analysis.error.details.length > 0 && (
+                    <ul className="mt-2 list-disc pl-5 text-xs">
+                      {analysis.error.details.map((detail, index) => (
+                        <li key={`${detail}-${index}`}>{detail}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Executive Summary</h2>
-                  <p className="text-sm text-gray-500 mt-1">Certificate dated {analysis.certificate_date} • Expires {analysis.expiry_date}</p>
+                  <p className="text-sm text-gray-500 mt-1">Certificate dated {analysis.certificate_date || 'N/A'} • Expires {analysis.expiry_date || 'N/A'}</p>
                 </div>
-                <RiskBadge rating={analysis.risk_rating} />
+                <RiskBadge rating={riskRating} />
               </div>
 
               <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-900">{analysis.summary.total}</div>
+                  <div className="text-2xl font-bold text-gray-900">{totalItems}</div>
                   <div className="text-xs text-gray-500">Items Analyzed</div>
                 </div>
                 <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                  <div className="text-2xl font-bold text-emerald-600">{analysis.summary.verified}</div>
+                  <div className="text-2xl font-bold text-emerald-600">{summary.verified}</div>
                   <div className="text-xs text-emerald-700">Verified OK</div>
                 </div>
                 <div className="text-center p-3 bg-amber-50 rounded-lg">
-                  <div className="text-2xl font-bold text-amber-600">{analysis.summary.warnings}</div>
+                  <div className="text-2xl font-bold text-amber-600">{summary.warnings}</div>
                   <div className="text-xs text-amber-700">Warnings</div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-400">{analysis.summary.missing}</div>
+                  <div className="text-2xl font-bold text-gray-400">{summary.missing}</div>
                   <div className="text-xs text-gray-500">Not Found</div>
                 </div>
               </div>
@@ -420,21 +447,21 @@ export default function ReportPage() {
             </div>
 
             {/* Issues */}
-            {analysis.issues.length > 0 && (
+            {issues.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-lg">🚩</span>
-                  <h2 className="text-lg font-semibold text-gray-900">Issues Flagged ({analysis.issues.length})</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Issues Flagged ({issues.length})</h2>
                 </div>
                 <div className="space-y-3">
-                  {analysis.issues.map(issue => <IssueCard key={issue.id} issue={issue} onViewPDF={viewPDF} />)}
+                  {issues.map(issue => <IssueCard key={issue.id} issue={issue} onViewPDF={viewPDF} />)}
                 </div>
               </div>
             )}
 
             {/* Sections */}
             <div className="space-y-4">
-              {Object.entries(analysis.sections).map(([key, section]) => (
+              {Object.entries(sections).map(([key, section]) => (
                 <CollapsibleSection
                   key={key}
                   title={section.title}
@@ -493,7 +520,7 @@ export default function ReportPage() {
                 const blob = new Blob([letterRef.current?.value || ''], { type: 'text/plain' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = `client-letter-${analysis.corporation}.txt`;
+                a.download = `client-letter-${analysis.corporation || 'report'}.txt`;
                 a.click();
               }} className="flex-1 py-2 px-4 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700">
                 💾 Download
