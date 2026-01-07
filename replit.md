@@ -99,6 +99,7 @@ types/                 # TypeScript type definitions
 - **Client Letter Generator**: One-click generation of client-ready summary letters
 
 ## Recent Changes
+- January 7, 2026: Unified demo report page design with landing page aesthetic (navy/slate/cream/brass color palette, Source Serif 4 headings, brass-colored page badges and CTAs)
 - January 7, 2026: Updated hero H1 to "Ontario status certificate review in under 2 minutes."
 - January 7, 2026: Unified all CTAs to "Analyze Status Certificate" (header, hero, bottom)
 - January 7, 2026: Updated trust bullets to "Page citations · Auto-delete controls · No training on your data"
