@@ -110,8 +110,25 @@ types/                 # TypeScript type definitions
 - **Page Reference Badges**: Each extracted item and issue shows a "p.X" badge indicating the source page
 - **PDF Navigation**: Clicking page badges opens and navigates to that page in the PDF viewer
 - **Split View**: Report page shows analysis on left, PDF viewer on right for easy verification
-- **Client Letter Generator**: One-click generation of client-ready summary letters
+- **Client Letter Generator**: Professional lawyer-style letters with three-way value classification
 - **OCR Support**: Automatic OCR fallback for scanned/image-based PDFs using Tesseract.js
+
+## Client Letter Generator
+The letter generator uses a robust three-way classification system to prevent misstating facts:
+
+### Helper Functions
+- **isConfirmedNone()**: Staged parsing - exact matches → dollar amounts → keyword-adjacent amounts → phrase whitelist
+- **isUnknownValue()**: Detects ambiguous/unavailable data (N/A, not provided, see attached, etc.)
+- **hasMeaningfulValue()**: Returns true when value exists, isn't confirmed zero, and isn't unknown
+
+### Letter Format
+1. Professional opening with legal description
+2. Payment status (common elements confirmed/arrears requiring attention)
+3. PAP/utilities reminder for closing
+4. Reserve fund details with study dates
+5. Litigation status and potential claims
+6. Unit alterations and by-laws reminder
+7. Professional closing
 
 ## Recent Changes
 - January 7, 2026: **Multi-document property-based UX** - Users now upload multiple PDFs per property with address/unit fields
