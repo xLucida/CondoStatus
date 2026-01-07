@@ -35,11 +35,42 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { file, fileName } = body;
+    const { file, fileName, fileType } = body;
+    const maxFileBytes = 20 * 1024 * 1024;
 
     if (!file) {
       return NextResponse.json(
         { success: false, error: 'No file provided' },
+        { status: 400 }
+      );
+    }
+
+    if (!fileName || typeof fileName !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'Missing file metadata' },
+        { status: 400 }
+      );
+    }
+
+    if (fileType && fileType !== 'application/pdf') {
+      return NextResponse.json(
+        { success: false, error: 'Invalid file type. Please upload a PDF file.' },
+        { status: 400 }
+      );
+    }
+
+    if (!fileName.toLowerCase().endsWith('.pdf')) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid file extension. Please upload a PDF file.' },
+        { status: 400 }
+      );
+    }
+
+    const padding = file.endsWith('==') ? 2 : file.endsWith('=') ? 1 : 0;
+    const estimatedBytes = Math.floor((file.length * 3) / 4) - padding;
+    if (estimatedBytes > maxFileBytes) {
+      return NextResponse.json(
+        { success: false, error: 'File too large (max 20MB)' },
         { status: 400 }
       );
     }

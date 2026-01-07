@@ -58,7 +58,8 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           file: base64, 
-          fileName: file.name 
+          fileName: file.name,
+          fileType: file.type,
         }),
       });
 
