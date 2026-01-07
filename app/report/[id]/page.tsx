@@ -56,14 +56,17 @@ interface Analysis {
 // Components
 const RiskBadge = ({ rating }: { rating: 'GREEN' | 'YELLOW' | 'RED' }) => {
   const config = {
-    GREEN: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', icon: '✓', label: 'Low Risk' },
-    YELLOW: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', icon: '⚠', label: 'Medium Risk' },
-    RED: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: '✗', label: 'High Risk' },
+    GREEN: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', icon: '✓', label: 'Low Flagged Risk' },
+    YELLOW: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', icon: '⚠', label: 'Medium Flagged Risk' },
+    RED: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: '✗', label: 'High Flagged Risk' },
   }[rating];
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 ${config.bg} ${config.border}`}>
-      <span className={`text-xl font-bold ${config.text}`}>{config.icon}</span>
-      <span className={`font-semibold ${config.text}`}>{config.label}</span>
+    <div className="flex flex-col items-end">
+      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 ${config.bg} ${config.border}`}>
+        <span className={`text-xl font-bold ${config.text}`}>{config.icon}</span>
+        <span className={`font-semibold ${config.text}`}>{config.label}</span>
+      </div>
+      <span className="text-xs text-slate-400 mt-1">Based on disclosed info</span>
     </div>
   );
 };
@@ -123,10 +126,10 @@ const DonutChart = ({ value, max, label, color = 'emerald' }: { value: number; m
           <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke={c.stroke} strokeWidth="3" strokeDasharray={`${percentage} ${100 - percentage}`} strokeLinecap="round" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold text-gray-900">{Math.round(percentage)}%</span>
+          <span className="text-lg font-bold text-navy-900">{Math.round(percentage)}%</span>
         </div>
       </div>
-      <span className="mt-2 text-xs text-gray-500 text-center">{label}</span>
+      <span className="mt-2 text-xs text-slate-500 text-center">{label}</span>
     </div>
   );
 };
@@ -134,36 +137,36 @@ const DonutChart = ({ value, max, label, color = 'emerald' }: { value: number; m
 const CollapsibleSection = ({ title, icon, children, defaultOpen = true, itemCount, warningCount = 0 }: any) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-      <button onClick={() => setIsOpen(!isOpen)} className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors">
+    <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-card">
+      <button onClick={() => setIsOpen(!isOpen)} className="w-full px-4 py-3 flex items-center justify-between bg-cream-50 hover:bg-cream-100 transition-colors">
         <div className="flex items-center gap-3">
           <span className="text-lg">{icon}</span>
-          <span className="font-semibold text-gray-900">{title}</span>
-          {itemCount !== undefined && <span className="text-xs text-gray-500">({itemCount} items)</span>}
+          <span className="font-serif font-semibold text-navy-900">{title}</span>
+          {itemCount !== undefined && <span className="text-xs text-slate-500">({itemCount} items)</span>}
           {warningCount > 0 && (
             <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
               {warningCount} warning{warningCount !== 1 ? 's' : ''}
             </span>
           )}
         </div>
-        <svg className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
-      {isOpen && <div className="p-4 border-t border-gray-200">{children}</div>}
+      {isOpen && <div className="p-4 border-t border-slate-200">{children}</div>}
     </div>
   );
 };
 
 const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: number | null, quote: string | null) => void }) => (
-  <div className={`group flex items-start gap-3 py-3 px-3 -mx-3 rounded-lg hover:bg-gray-50 ${item.status === 'warning' || item.status === 'error' ? 'bg-amber-50/50' : ''}`}>
+  <div className={`flex items-start gap-3 py-3 px-3 -mx-3 rounded-lg hover:bg-cream-50 ${item.status === 'warning' || item.status === 'error' ? 'bg-amber-50/50' : ''}`}>
     <StatusIcon status={item.status} />
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600">{item.label}</span>
+        <span className="text-sm text-slate-600">{item.label}</span>
         <ConfidenceBar level={item.confidence} />
       </div>
-      <div className="mt-0.5 font-medium text-gray-900 break-words">{item.value}</div>
+      <div className="mt-0.5 font-medium text-navy-900 break-words">{item.value}</div>
       {item.reason && item.status !== 'ok' && (
         <div className="mt-1 text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded inline-block">{item.reason}</div>
       )}
@@ -171,7 +174,7 @@ const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: n
     {item.page && (
       <button
         onClick={() => onViewPDF(item.page, item.quote)}
-        className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+        className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-navy-700 bg-brass-100 hover:bg-brass-200 rounded transition-colors"
         title={`View on page ${item.page}`}
       >
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -185,17 +188,17 @@ const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: n
 
 const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: number, quote: string) => void }) => {
   const [expanded, setExpanded] = useState(false);
-  const borderColor = { high: 'border-red-200 bg-red-50', warning: 'border-amber-200 bg-amber-50', low: 'border-blue-200 bg-blue-50' }[issue.severity] || '';
+  const borderColor = { high: 'border-red-200 bg-red-50', warning: 'border-amber-200 bg-amber-50', low: 'border-slate-200 bg-cream-50' }[issue.severity] || '';
   return (
     <div className={`border rounded-lg overflow-hidden ${borderColor}`}>
       <button onClick={() => setExpanded(!expanded)} className="w-full p-4 text-left flex items-start gap-3">
         <SeverityBadge severity={issue.severity} />
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h4 className="font-medium text-gray-900">{issue.title}</h4>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="font-medium text-navy-900">{issue.title}</h4>
             <span 
               onClick={(e) => { e.stopPropagation(); onViewPDF(issue.page, issue.quote); }}
-              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-navy-700 bg-brass-100 hover:bg-brass-200 rounded cursor-pointer transition-colors"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -203,35 +206,35 @@ const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: numbe
               p.{issue.page}
             </span>
           </div>
-          <p className="mt-1 text-sm text-gray-600 line-clamp-2">{issue.finding}</p>
+          <p className="mt-1 text-sm text-slate-600 line-clamp-2">{issue.finding}</p>
         </div>
-        <svg className={`w-5 h-5 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className={`w-5 h-5 text-slate-400 transition-transform flex-shrink-0 ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-200/50 pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t border-slate-200/50 pt-3">
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Finding</div>
-            <p className="text-sm text-gray-700">{issue.finding}</p>
+            <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Finding</div>
+            <p className="text-sm text-slate-700">{issue.finding}</p>
           </div>
           {issue.regulation && (
             <div>
-              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Regulation</div>
-              <p className="text-sm text-gray-700">{issue.regulation}</p>
+              <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Regulation</div>
+              <p className="text-sm text-slate-700">{issue.regulation}</p>
             </div>
           )}
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Recommendation</div>
-            <p className="text-sm text-gray-700">{issue.recommendation}</p>
+            <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Recommendation</div>
+            <p className="text-sm text-slate-700">{issue.recommendation}</p>
           </div>
           {issue.quote && (
             <div>
-              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Source</div>
-              <blockquote className="text-sm text-gray-600 italic border-l-2 border-gray-300 pl-3">&ldquo;{issue.quote}&rdquo;</blockquote>
+              <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Source</div>
+              <blockquote className="text-sm text-slate-600 italic border-l-2 border-slate-300 pl-3">&ldquo;{issue.quote}&rdquo;</blockquote>
             </div>
           )}
-          <button onClick={() => onViewPDF(issue.page, issue.quote)} className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+          <button onClick={() => onViewPDF(issue.page, issue.quote)} className="text-sm text-brass-600 hover:text-brass-700 font-medium flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -373,36 +376,36 @@ export default function ReportPage() {
   const sectionIcons: Record<string, string> = { common_expenses: '💰', reserve_fund: '🏦', special_assessments: '📋', legal_proceedings: '⚖️', insurance: '🛡️', management: '👥', rules: '📜', building_notes: '🏢' };
 
   return (
-    <div className="min-h-screen bg-gray-100 print:bg-white">
+    <div className="min-h-screen bg-cream-50 print:bg-white">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 print:static">
+      <header className="bg-navy-900 border-b border-navy-800 sticky top-0 z-30 print:static">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/')} className="text-gray-500 hover:text-gray-700 print:hidden">
+            <button onClick={() => router.push('/')} className="text-cream-200 hover:text-cream-100 print:hidden">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
             <div>
-              <h1 className="font-semibold text-gray-900">{analysis.corporation || 'Unknown Corporation'}</h1>
-              <p className="text-sm text-gray-500">{analysis.address || 'Address unavailable'}</p>
+              <h1 className="font-serif font-semibold text-cream-100">{analysis.corporation || 'Unknown Corporation'}</h1>
+              <p className="text-sm text-cream-300">{analysis.address || 'Address unavailable'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 print:hidden">
             <button
               onClick={() => setShowPDF(!showPDF)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${showPDF ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${showPDF ? 'bg-brass-500 text-navy-900' : 'bg-navy-800 text-cream-200 hover:bg-navy-700'}`}
             >
               {showPDF ? 'Hide PDF' : 'Show PDF'}
             </button>
-            <button onClick={() => setShowLetterModal(true)} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
-              📧 Client Letter
+            <button onClick={() => setShowLetterModal(true)} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-navy-800 text-cream-200 hover:bg-navy-700">
+              Client Letter
             </button>
-            <button onClick={exportAnalysis} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
-              ⬇️ Export JSON
+            <button onClick={exportAnalysis} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-navy-800 text-cream-200 hover:bg-navy-700">
+              Export JSON
             </button>
-            <button onClick={() => window.print()} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
-              🖨️ Print
+            <button onClick={() => window.print()} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-navy-800 text-cream-200 hover:bg-navy-700">
+              Print
             </button>
           </div>
         </div>
@@ -415,7 +418,7 @@ export default function ReportPage() {
           <div className="p-6 max-w-3xl mx-auto space-y-6">
             
             {/* Executive Summary */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-card border border-slate-200 p-6">
               {analysis.error && (
                 <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
                   <div className="font-semibold">We could not fully parse the analysis.</div>
@@ -431,39 +434,39 @@ export default function ReportPage() {
               )}
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Executive Summary</h2>
-                  <p className="text-sm text-gray-500 mt-1">Certificate dated {analysis.certificate_date || 'N/A'} • Expires {analysis.expiry_date || 'N/A'}</p>
+                  <h2 className="text-lg font-serif font-semibold text-navy-900">Executive Summary</h2>
+                  <p className="text-sm text-slate-500 mt-1">Certificate dated {analysis.certificate_date || 'N/A'} • Expires {analysis.expiry_date || 'N/A'}</p>
                 </div>
                 <RiskBadge rating={riskRating} />
               </div>
 
               <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-900">{totalItems}</div>
-                  <div className="text-xs text-gray-500">Items Analyzed</div>
+                <div className="text-center p-3 bg-cream-50 rounded-lg border border-slate-100">
+                  <div className="text-2xl font-bold text-navy-900">{totalItems}</div>
+                  <div className="text-xs text-slate-500">Items Analyzed</div>
                 </div>
-                <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                <div className="text-center p-3 bg-emerald-50 rounded-lg border border-emerald-100">
                   <div className="text-2xl font-bold text-emerald-600">{summary.verified}</div>
                   <div className="text-xs text-emerald-700">Verified OK</div>
                 </div>
-                <div className="text-center p-3 bg-amber-50 rounded-lg">
+                <div className="text-center p-3 bg-amber-50 rounded-lg border border-amber-100">
                   <div className="text-2xl font-bold text-amber-600">{summary.warnings}</div>
                   <div className="text-xs text-amber-700">Warnings</div>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-400">{summary.missing}</div>
-                  <div className="text-xs text-gray-500">Not Found</div>
+                <div className="text-center p-3 bg-cream-50 rounded-lg border border-slate-100">
+                  <div className="text-2xl font-bold text-slate-400">{summary.missing}</div>
+                  <div className="text-xs text-slate-500">Not Found</div>
                 </div>
               </div>
 
               {reservePerUnit > 0 && (
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="text-sm font-medium text-gray-700 mb-4">Financial Overview</h3>
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-sm font-serif font-medium text-navy-700 mb-4">Financial Overview</h3>
                   <div className="flex items-center gap-6">
                     <DonutChart value={reservePerUnit} max={10000} label="Reserve/Unit Health" color={reservePerUnit > 5000 ? 'emerald' : reservePerUnit > 2000 ? 'amber' : 'red'} />
                     <div>
-                      <div className="text-2xl font-bold text-gray-900">${reservePerUnit.toLocaleString()}</div>
-                      <div className="text-sm text-gray-500">per unit</div>
+                      <div className="text-2xl font-bold text-navy-900">${reservePerUnit.toLocaleString()}</div>
+                      <div className="text-sm text-slate-500">per unit</div>
                       <div className={`text-xs mt-1 ${reservePerUnit > 5000 ? 'text-emerald-600' : reservePerUnit > 2000 ? 'text-amber-600' : 'text-red-600'}`}>
                         {reservePerUnit > 5000 ? 'Healthy' : reservePerUnit > 2000 ? 'Adequate' : 'Low'}
                       </div>
@@ -475,10 +478,10 @@ export default function ReportPage() {
 
             {/* Issues */}
             {issues.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-xl shadow-card border border-slate-200 p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-lg">🚩</span>
-                  <h2 className="text-lg font-semibold text-gray-900">Issues Flagged ({issues.length})</h2>
+                  <h2 className="text-lg font-serif font-semibold text-navy-900">Issues Flagged ({issues.length})</h2>
                 </div>
                 <div className="space-y-3">
                   {issues.map(issue => <IssueCard key={issue.id} issue={issue} onViewPDF={viewPDF} />)}
@@ -497,7 +500,7 @@ export default function ReportPage() {
                   warningCount={getSectionWarnings(section)}
                   defaultOpen={getSectionWarnings(section) > 0}
                 >
-                  <div className="divide-y divide-gray-100">
+                  <div className="divide-y divide-slate-100">
                     {section.items.map(item => <ItemRow key={item.id} item={item} onViewPDF={viewPDF} />)}
                   </div>
                 </CollapsibleSection>
@@ -505,17 +508,17 @@ export default function ReportPage() {
             </div>
 
             {/* Footer */}
-            <div className="text-center text-xs text-gray-400 py-8">
+            <div className="text-center text-xs text-slate-400 py-8">
               Generated by CertAnalyzer • {new Date().toLocaleDateString()}
               <br />
-              <span className="text-gray-300">This tool assists with information extraction only. Always verify against the source document.</span>
+              <span className="text-slate-300">This analysis is not legal advice. Always verify findings against the source document.</span>
             </div>
           </div>
         </div>
 
         {/* Right Panel - PDF Viewer */}
         {showPDF && (
-          <div className="w-1/2 border-l border-gray-200 print:hidden">
+          <div className="w-1/2 border-l border-slate-200 print:hidden bg-white">
             <PDFViewer
               reportId={reportId}
               pdfUrl={pdfUrl}
@@ -533,16 +536,16 @@ export default function ReportPage() {
       {showLetterModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowLetterModal(false)}>
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Client Letter</h3>
-              <button onClick={() => setShowLetterModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="font-serif font-semibold text-navy-900">Client Letter</h3>
+              <button onClick={() => setShowLetterModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <div className="p-4 flex-1 overflow-auto">
-              <textarea ref={letterRef} defaultValue={generateClientLetter(analysis)} className="w-full h-80 p-4 border border-gray-200 rounded-lg text-sm font-mono resize-none" />
+              <textarea ref={letterRef} defaultValue={generateClientLetter(analysis)} className="w-full h-80 p-4 border border-slate-200 rounded-lg text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-brass-500" />
             </div>
-            <div className="p-4 border-t border-gray-200 flex gap-2">
-              <button onClick={() => copyToClipboard(letterRef.current?.value || '')} className={`flex-1 py-2 px-4 rounded-lg font-medium ${copied ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                {copied ? '✓ Copied!' : '📋 Copy to Clipboard'}
+            <div className="p-4 border-t border-slate-200 flex gap-2">
+              <button onClick={() => copyToClipboard(letterRef.current?.value || '')} className={`flex-1 py-2 px-4 rounded-lg font-medium ${copied ? 'bg-emerald-100 text-emerald-700' : 'bg-cream-100 text-navy-700 hover:bg-cream-200'}`}>
+                {copied ? '✓ Copied!' : 'Copy to Clipboard'}
               </button>
               <button onClick={() => {
                 const blob = new Blob([letterRef.current?.value || ''], { type: 'text/plain' });
@@ -550,8 +553,8 @@ export default function ReportPage() {
                 a.href = URL.createObjectURL(blob);
                 a.download = `client-letter-${analysis.corporation || 'report'}.txt`;
                 a.click();
-              }} className="flex-1 py-2 px-4 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700">
-                💾 Download
+              }} className="flex-1 py-2 px-4 rounded-lg font-medium bg-brass-500 text-navy-900 hover:bg-brass-600">
+                Download
               </button>
             </div>
           </div>

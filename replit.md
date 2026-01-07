@@ -100,6 +100,9 @@ types/                 # TypeScript type definitions
 - **OCR Support**: Automatic OCR fallback for scanned/image-based PDFs using Tesseract.js
 
 ## Recent Changes
+- January 7, 2026: Unified actual report page (/report/[id]) design to match demo page styling - navy header, cream background, brass page badges, Source Serif 4 headings
+- January 7, 2026: Added jsonrepair library to automatically fix malformed AI JSON responses (trailing commas, markdown wrappers, etc.)
+- January 7, 2026: Added detailed logging for JSON parsing failures to diagnose Venice API response issues
 - January 7, 2026: Unified demo report page design with landing page aesthetic (navy/slate/cream/brass color palette, Source Serif 4 headings, brass-colored page badges and CTAs)
 - January 7, 2026: Updated hero H1 to "Ontario status certificate review in under 2 minutes."
 - January 7, 2026: Unified all CTAs to "Analyze Status Certificate" (header, hero, bottom)
