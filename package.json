@@ -13,6 +13,7 @@
     "@sentry/nextjs": "^10.32.1",
     "@ungap/with-resolvers": "^0.1.0",
     "canvas": "^3.2.0",
+    "jsonrepair": "^3.13.1",
     "next": "14.0.4",
     "openai": "^4.20.0",
     "pdf-parse": "^1.1.1",

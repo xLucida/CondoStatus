@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { jsonrepair } from 'jsonrepair';
 import { AnalysisError, ExtractionResult, Section, Issue, ExtractedItem } from '@/types';
 import { findPageForQuote } from './pdf-parser';
 import { normalizeSections } from './section-normalizer';
@@ -521,13 +522,25 @@ export async function analyzeStatusCertificate(
   let parsedValue: unknown;
   try {
     parsedValue = JSON.parse(jsonStr);
-  } catch (error) {
-    return buildErrorResult({
-      type: 'parse_error',
-      message: 'Unable to parse the analysis response.',
-      details: [error instanceof Error ? error.message : 'Unknown parsing error'],
-      raw: jsonStr.slice(0, 2000),
-    });
+  } catch (parseError) {
+    // Try to repair the JSON before giving up
+    console.log('Initial JSON parse failed, attempting repair...');
+    console.log('Raw response (first 500 chars):', content.slice(0, 500));
+    
+    try {
+      const repairedJson = jsonrepair(jsonStr);
+      parsedValue = JSON.parse(repairedJson);
+      console.log('JSON repair successful');
+    } catch (repairError) {
+      console.error('JSON repair also failed:', repairError);
+      console.error('Extracted JSON string (first 1000 chars):', jsonStr.slice(0, 1000));
+      return buildErrorResult({
+        type: 'parse_error',
+        message: 'Unable to parse the analysis response.',
+        details: [parseError instanceof Error ? parseError.message : 'Unknown parsing error'],
+        raw: jsonStr.slice(0, 2000),
+      });
+    }
   }
 
   if (!parsedValue || typeof parsedValue !== 'object') {
