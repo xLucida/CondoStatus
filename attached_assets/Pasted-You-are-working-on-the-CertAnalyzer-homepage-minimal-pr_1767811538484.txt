@@ -1,0 +1,128 @@
+You are working on the CertAnalyzer homepage (minimal, professional, modern). Goal: improve conversion and clarity without major redesign. Implement the following as separate, discrete tweaks. Do each task fully, test visually, then move to the next.
+
+IMPORTANT
+- Keep the existing clean layout and spacing.
+- Do not add new pages.
+- Prefer small, high-impact changes.
+- Ensure responsive behavior on mobile.
+- Do not introduce any unverified claims (only use copy that is true based on current implementation).
+
+========================================
+TASK 1 — Restore a real above-the-fold hero (highest priority)
+========================================
+Problem: The homepage lost a clear H1/value prop above the fold. “Minutes, not hours” appears too far down.
+
+Do:
+1) Add a clear H1 + subhead in the top section (left of the preview card).
+2) Keep the top nav and existing CTA layout, but make the hero text clearly dominant.
+
+Hero copy (use exactly):
+- H1: "Ontario status certificate review in under 2 minutes."
+- Subhead: "Red flags, key numbers, missing disclosures, and page-cited findings—exportable for your client file."
+- Trust bullets (small line under subhead): "Page citations · Auto-delete controls · No training on your data"
+- Primary CTA button label: "Analyze Status Certificate"
+- Secondary CTA button label: "View Demo Report"
+
+Acceptance checks:
+- On desktop: H1 visible above the fold with the preview.
+- On mobile: H1 + CTA appear before the preview.
+
+========================================
+TASK 2 — Unify CTA language site-wide
+========================================
+Problem: Inconsistent CTA labels reduce clarity.
+
+Do:
+1) Replace any “Analyze Certificate” / similar variations with: "Analyze Status Certificate"
+2) Ensure the top-right header button matches the hero CTA label.
+3) Confirm only one primary CTA style (same color, same padding, same hover).
+
+Acceptance checks:
+- CTA label is identical in header + hero + bottom CTA.
+- No duplicate conflicting CTAs in the same viewport.
+
+========================================
+TASK 3 — Make “Page citations” a first-class differentiator (near the top)
+========================================
+Problem: Page citations is a key trust feature (especially for lawyers) but currently appears lower.
+
+Do:
+1) Ensure “Page citations” is either:
+   - Included in the trust bullets under the hero (already), AND
+   - Also visible in the “Minutes, not hours” feature cards.
+2) Adjust the “Minutes, not hours” feature card copy so “Page citations” is explicit and easy to read.
+
+Copy for that card (use exactly):
+- Title: "Page citations"
+- Body: "Every finding links to a source page for verification."
+
+Acceptance checks:
+- Users can see “page citations” within the first ~1–2 scrolls.
+- Card text is legible (not low-contrast).
+
+========================================
+TASK 4 — Make the hero preview show vivid deal-killers + page refs
+========================================
+Problem: Preview should immediately communicate value (deal-breaker issues + page references).
+
+Do:
+1) In the top preview widget, include 2–3 example items that feel real:
+   - “Special assessment: $18,500 due at closing”
+   - “Pending litigation slip-and-fall claim”
+   - “Reserve fund at 72% of target”
+2) Ensure each item shows a small page reference tag (e.g., “p.23”, “p.31”).
+
+Acceptance checks:
+- Preview looks credible, not sensational.
+- Page tags are visible and consistent with your report UI.
+
+========================================
+TASK 5 — Improve readability of the “Minutes, not hours” feature cards
+========================================
+Problem: Feature strip text is slightly too light/quiet.
+
+Do:
+1) Increase body text size slightly and/or increase contrast.
+2) Keep the minimal style (no heavy borders).
+3) Ensure equal spacing and consistent icon sizing.
+
+Acceptance checks:
+- Feature card text is readable on laptop and mobile.
+- No visual clutter added.
+
+========================================
+TASK 6 — Add a single expectation-setting line about Ontario format + attachments
+========================================
+Do:
+1) Add a short line near the hero subhead or near the step strip:
+
+Copy (use exactly):
+"Works with the Ontario standard status certificate form and attachments."
+
+Acceptance checks:
+- Doesn’t feel like legalese.
+- Visible early but not competing with the H1.
+
+========================================
+TASK 7 — Add a small “not legal advice” note near risk claims (not just footer)
+========================================
+Problem: Having this only in the footer can feel like a “gotcha.” Better to be transparent near risk detection.
+
+Do:
+1) Under the “Automatic risk detection” section (or directly beneath the risk cards), add small muted text:
+
+Copy (use exactly):
+"Information extraction and issue spotting only. Not legal advice."
+
+Acceptance checks:
+- Visible but subtle (small, muted).
+- Does not interrupt layout.
+
+========================================
+FINAL QA (after all tasks)
+========================================
+1) Desktop: Check above-the-fold clarity: H1 + subhead + CTA + preview.
+2) Mobile: Ensure hero text and CTA appear before preview and no cramped spacing.
+3) Confirm no unverified trust claims were added. Keep “SOC 2-ready” only if accurate; otherwise change it to “Security-first” language.
+4) Run Lighthouse quickly; ensure no major regressions.
+5) Confirm consistent typography, spacing, and CTA styles across sections.
