@@ -99,9 +99,15 @@ types/                 # TypeScript type definitions
 - **Client Letter Generator**: One-click generation of client-ready summary letters
 
 ## Recent Changes
+- January 7, 2026: Landing page improvements - removed dark trust bar, added inline trust line under hero CTA
+- January 7, 2026: De-duplicated CTAs - header button scrolls to hero on homepage
+- January 7, 2026: Punched up hero preview with "Critical" examples (special assessment $18,500, litigation) in red
+- January 7, 2026: Tightened hero copy with page citations mention, changed "firm up" to "go firm"
+- January 7, 2026: Added 3-step micro-section after hero (Upload PDF → Get red flags → Export/share)
+- January 7, 2026: Refined feature strip to 4 tiles with "page citations" and "auto-delete" as explicit features
+- January 7, 2026: Removed placeholder logo row entirely
 - January 7, 2026: Complete design system overhaul with premium legal aesthetic
 - January 7, 2026: Added design tokens: navy/slate/cream/brass colors, Source Serif 4 + Inter fonts
-- January 7, 2026: Redesigned navigation with dark trust bar (SOC 2, encryption badges)
 - January 7, 2026: Updated all marketing pages with new design (landing, pricing, how-it-works, about)
 - January 7, 2026: Redesigned footer with navy background and improved layout
 - January 7, 2026: Added visible page reference badges (p.X format) to all report items and issues
