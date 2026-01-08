@@ -171,7 +171,7 @@ const formatPageRef = (page: number | null | undefined, documentName?: string | 
   return `p.${page}`;
 };
 
-const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: number | null, quote: string | null) => void }) => {
+const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: number | null, quote: string | null, documentName?: string | null) => void }) => {
   const pageRef = formatPageRef(item.page, item.documentName, item.pageInDocument);
   
   return (
@@ -189,7 +189,7 @@ const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: n
       </div>
       {item.page && (
         <button
-          onClick={() => onViewPDF(item.page, item.quote)}
+          onClick={() => onViewPDF(item.page, item.quote, item.documentName)}
           className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-navy-700 bg-brass-100 hover:bg-brass-200 rounded transition-colors whitespace-nowrap"
           title={item.documentName ? `View in ${item.documentName}, page ${item.pageInDocument}` : `View on page ${item.page}`}
         >
@@ -203,7 +203,7 @@ const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: n
   );
 };
 
-const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: number, quote: string) => void }) => {
+const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: number, quote: string, documentName?: string | null) => void }) => {
   const [expanded, setExpanded] = useState(false);
   const borderColor = { high: 'border-red-200 bg-red-50', warning: 'border-amber-200 bg-amber-50', low: 'border-slate-200 bg-cream-50' }[issue.severity] || '';
   const pageRef = formatPageRef(issue.page, issue.documentName, issue.pageInDocument);
@@ -220,7 +220,7 @@ const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: numbe
             <h4 className="font-medium text-navy-900">{issue.title}</h4>
             {issue.page > 0 && (
               <span 
-                onClick={(e) => { e.stopPropagation(); onViewPDF(issue.page, issue.quote); }}
+                onClick={(e) => { e.stopPropagation(); onViewPDF(issue.page, issue.quote, issue.documentName); }}
                 className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-navy-700 bg-brass-100 hover:bg-brass-200 rounded cursor-pointer transition-colors"
                 title={fullPageRef}
               >
@@ -702,8 +702,27 @@ export default function ReportPage() {
     setLoading(false);
   }, []);
 
-  const viewPDF = useCallback((page: number | null, highlight?: string | null) => {
+  const viewPDF = useCallback((page: number | null, highlight?: string | null, documentName?: string | null) => {
     if (page) {
+      // Try to switch to the correct document's PDF
+      if (documentName) {
+        const pdfUrlsStr = sessionStorage.getItem('pdfUrls');
+        if (pdfUrlsStr) {
+          try {
+            const pdfUrls = JSON.parse(pdfUrlsStr) as Record<string, string>;
+            // Find matching PDF by partial name match (document names might be truncated)
+            const matchingKey = Object.keys(pdfUrls).find(key => 
+              key.includes(documentName) || documentName.includes(key.replace('.pdf', '').substring(0, 20))
+            );
+            if (matchingKey && pdfUrls[matchingKey]) {
+              setPdfUrl(pdfUrls[matchingKey]);
+              setFileName(matchingKey);
+            }
+          } catch (e) {
+            console.error('Failed to parse pdfUrls:', e);
+          }
+        }
+      }
       setPdfPage(page);
       setPdfHighlight(highlight || null);
       setShowPDF(true);

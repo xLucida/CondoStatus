@@ -169,9 +169,14 @@ export default function AnalyzePage() {
         warnings: data.warnings || [],
       }));
       
-      // Store first PDF for viewing (can be enhanced later)
+      // Store all PDFs for viewing with document names
       if (files.length > 0) {
-        sessionStorage.setItem('currentPdfUrl', URL.createObjectURL(files[0].file));
+        const pdfUrls: Record<string, string> = {};
+        files.forEach((f, idx) => {
+          pdfUrls[f.file.name] = URL.createObjectURL(f.file);
+        });
+        sessionStorage.setItem('pdfUrls', JSON.stringify(pdfUrls));
+        sessionStorage.setItem('currentPdfUrl', pdfUrls[files[0].file.name]);
         sessionStorage.setItem('currentFile', files[0].file.name);
       }
 
