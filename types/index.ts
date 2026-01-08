@@ -39,6 +39,8 @@ export interface ExtractedItem {
   label: string;
   value: string;
   page?: number | null;
+  documentName?: string | null;
+  pageInDocument?: number | null;
   status: 'ok' | 'warning' | 'error' | 'missing';
   confidence: 'high' | 'medium' | 'low';
   quote?: string | null;
@@ -50,6 +52,8 @@ export interface Issue {
   severity: 'high' | 'warning' | 'low';
   title: string;
   page: number;
+  documentName?: string | null;
+  pageInDocument?: number | null;
   finding: string;
   regulation: string;
   recommendation: string;

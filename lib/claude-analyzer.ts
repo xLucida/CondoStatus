@@ -20,6 +20,13 @@ const createVeniceClient = () => {
 
 const EXTRACTION_PROMPT = `You are a legal document analyzer specializing in Ontario condominium status certificates. Analyze the provided status certificate text and extract ALL relevant information with extreme precision.
 
+CRITICAL - EXACT QUOTES REQUIRED:
+For every extracted item, you MUST provide an exact "quote" field containing the VERBATIM text from the document that supports your extraction. This is essential for page reference linking.
+- Copy text EXACTLY as it appears, including punctuation and formatting
+- Include enough context (15-50 words) for reliable matching
+- If extracting from a document section marked "=== DOCUMENT X: filename ===", quote from within that section
+- Never paraphrase or summarize in the quote field - use exact document text
+
 Return a JSON object with this exact structure:
 {
   "corporation": "Full corporation name and number (e.g., 'Toronto Standard Condominium Corporation No. 1511')",

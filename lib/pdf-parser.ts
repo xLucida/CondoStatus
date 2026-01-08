@@ -226,24 +226,76 @@ function renderPage(pageData: any): Promise<string> {
   });
 }
 
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function calculateSimilarity(text1: string, text2: string): number {
+  const words1 = text1.split(' ').filter(w => w.length > 2);
+  const words2 = new Set(text2.split(' ').filter(w => w.length > 2));
+  if (words1.length === 0) return 0;
+  const matchCount = words1.filter(w => words2.has(w)).length;
+  return matchCount / words1.length;
+}
+
 export function findPageForQuote(pages: string[], quote: string): number | null {
-  if (!quote) return null;
+  if (!quote || !pages || pages.length === 0) return null;
   
-  const normalizedQuote = quote.toLowerCase().trim();
+  const normalizedQuote = normalizeText(quote);
+  if (normalizedQuote.length < 5) return null;
   
+  // Stage 1: Exact substring match (most reliable)
   for (let i = 0; i < pages.length; i++) {
     const normalizedPage = pages[i].toLowerCase();
+    if (normalizedPage.includes(quote.toLowerCase().trim())) {
+      return i + 1;
+    }
+  }
+  
+  // Stage 2: Normalized substring match (handles punctuation differences)
+  for (let i = 0; i < pages.length; i++) {
+    const normalizedPage = normalizeText(pages[i]);
     if (normalizedPage.includes(normalizedQuote)) {
       return i + 1;
     }
   }
   
-  const words = normalizedQuote.split(' ').filter(w => w.length > 4);
-  if (words.length >= 3) {
+  // Stage 3: Word-based fuzzy match (handles OCR errors)
+  const words = normalizedQuote.split(' ').filter(w => w.length > 3);
+  if (words.length >= 2) {
+    let bestPage = -1;
+    let bestScore = 0;
+    
     for (let i = 0; i < pages.length; i++) {
-      const normalizedPage = pages[i].toLowerCase();
-      const matchCount = words.filter(w => normalizedPage.includes(w)).length;
-      if (matchCount >= words.length * 0.7) {
+      const normalizedPage = normalizeText(pages[i]);
+      const similarity = calculateSimilarity(normalizedQuote, normalizedPage);
+      
+      // Also check if key words appear close together
+      const pageWords = normalizedPage.split(' ');
+      const keyWordsInPage = words.filter(w => normalizedPage.includes(w));
+      
+      if (keyWordsInPage.length >= Math.min(3, words.length * 0.5)) {
+        const score = similarity + (keyWordsInPage.length / words.length) * 0.5;
+        if (score > bestScore && score > 0.4) {
+          bestScore = score;
+          bestPage = i + 1;
+        }
+      }
+    }
+    
+    if (bestPage > 0) return bestPage;
+  }
+  
+  // Stage 4: First few significant words match (for partial quotes)
+  const firstWords = words.slice(0, 4).join(' ');
+  if (firstWords.length >= 10) {
+    for (let i = 0; i < pages.length; i++) {
+      const normalizedPage = normalizeText(pages[i]);
+      if (normalizedPage.includes(firstWords)) {
         return i + 1;
       }
     }

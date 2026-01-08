@@ -25,6 +25,16 @@ interface ParsedDocument {
   pageCount: number;
   pageOffset: number;
   usedOCR: boolean;
+  pages: string[];
+}
+
+interface PageInfo {
+  text: string;
+  documentIndex: number;
+  documentName: string;
+  docType: string;
+  pageInDocument: number;
+  globalPage: number;
 }
 
 interface FailedDocument {
@@ -174,6 +184,7 @@ export async function POST(request: NextRequest) {
           pageCount: pdfData.pageCount,
           pageOffset: totalPageCount,
           usedOCR: pdfData.usedOCR || false,
+          pages: pdfData.pages || [],
         });
         
         totalPageCount += pdfData.pageCount;
@@ -224,9 +235,61 @@ export async function POST(request: NextRequest) {
       endPage: doc.pageOffset + doc.pageCount,
     }));
 
-    // For multi-document, we pass combined text but empty pages array
-    // The page references in the analysis will be relative to the combined document
-    const analysis = await analyzeStatusCertificate(combinedText, []);
+    // Build combined pages array with document info for each page
+    const allPagesInfo: PageInfo[] = [];
+    const allPagesText: string[] = [];
+    
+    for (let docIndex = 0; docIndex < parsedDocs.length; docIndex++) {
+      const doc = parsedDocs[docIndex];
+      for (let pageIndex = 0; pageIndex < doc.pages.length; pageIndex++) {
+        const globalPageNum = allPagesText.length + 1;
+        allPagesText.push(doc.pages[pageIndex]);
+        allPagesInfo.push({
+          text: doc.pages[pageIndex],
+          documentIndex: docIndex,
+          documentName: doc.fileName,
+          docType: doc.docType,
+          pageInDocument: pageIndex + 1,
+          globalPage: globalPageNum,
+        });
+      }
+    }
+
+    // Pass combined pages to analyzer for quote matching
+    const analysis = await analyzeStatusCertificate(combinedText, allPagesText);
+
+    // Helper to get document info for a global page number
+    const getDocumentInfoForPage = (globalPage: number | null | undefined): { documentName: string | null; pageInDocument: number | null } => {
+      if (!globalPage || globalPage < 1 || globalPage > allPagesInfo.length) {
+        return { documentName: null, pageInDocument: null };
+      }
+      const pageInfo = allPagesInfo[globalPage - 1];
+      return {
+        documentName: pageInfo?.documentName || null,
+        pageInDocument: pageInfo?.pageInDocument || null,
+      };
+    };
+
+    // Add document info to all extracted items
+    if (analysis.sections) {
+      for (const sectionKey of Object.keys(analysis.sections)) {
+        const section = analysis.sections[sectionKey];
+        for (const item of section.items) {
+          const docInfo = getDocumentInfoForPage(item.page);
+          item.documentName = docInfo.documentName;
+          item.pageInDocument = docInfo.pageInDocument;
+        }
+      }
+    }
+
+    // Add document info to all issues
+    if (analysis.issues) {
+      for (const issue of analysis.issues) {
+        const docInfo = getDocumentInfoForPage(issue.page);
+        issue.documentName = docInfo.documentName;
+        issue.pageInDocument = docInfo.pageInDocument;
+      }
+    }
 
     // Generate report ID
     const reportId = `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -259,6 +322,7 @@ export async function POST(request: NextRequest) {
       analysis,
       documentsSummary,
       pageMap,
+      pagesInfo: allPagesInfo,
       extractedTextLength: combinedText.length,
       pageCount: totalPageCount,
       usedOCR: anyUsedOCR,

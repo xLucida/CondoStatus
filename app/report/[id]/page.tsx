@@ -13,6 +13,8 @@ interface ExtractedItem {
   label: string;
   value: string;
   page: number | null;
+  documentName?: string | null;
+  pageInDocument?: number | null;
   status: 'ok' | 'warning' | 'error' | 'missing';
   confidence: 'high' | 'medium' | 'low';
   quote: string | null;
@@ -29,6 +31,8 @@ interface Issue {
   severity: 'high' | 'warning' | 'low';
   title: string;
   page: number;
+  documentName?: string | null;
+  pageInDocument?: number | null;
   finding: string;
   regulation: string;
   recommendation: string;
@@ -158,37 +162,55 @@ const CollapsibleSection = ({ title, icon, children, defaultOpen = true, itemCou
   );
 };
 
-const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: number | null, quote: string | null) => void }) => (
-  <div className={`flex items-start gap-3 py-3 px-3 -mx-3 rounded-lg hover:bg-cream-50 ${item.status === 'warning' || item.status === 'error' ? 'bg-amber-50/50' : ''}`}>
-    <StatusIcon status={item.status} />
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-slate-600">{item.label}</span>
-        <ConfidenceBar level={item.confidence} />
+const formatPageRef = (page: number | null | undefined, documentName?: string | null, pageInDocument?: number | null): string => {
+  if (!page) return '';
+  if (documentName && pageInDocument) {
+    const shortName = documentName.replace(/\.pdf$/i, '').replace(/^\d+\.\s*/, '').substring(0, 20);
+    return `${shortName} p.${pageInDocument}`;
+  }
+  return `p.${page}`;
+};
+
+const ItemRow = ({ item, onViewPDF }: { item: ExtractedItem; onViewPDF: (page: number | null, quote: string | null) => void }) => {
+  const pageRef = formatPageRef(item.page, item.documentName, item.pageInDocument);
+  
+  return (
+    <div className={`flex items-start gap-3 py-3 px-3 -mx-3 rounded-lg hover:bg-cream-50 ${item.status === 'warning' || item.status === 'error' ? 'bg-amber-50/50' : ''}`}>
+      <StatusIcon status={item.status} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-600">{item.label}</span>
+          <ConfidenceBar level={item.confidence} />
+        </div>
+        <div className="mt-0.5 font-medium text-navy-900 break-words">{item.value}</div>
+        {item.reason && item.status !== 'ok' && (
+          <div className="mt-1 text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded inline-block">{item.reason}</div>
+        )}
       </div>
-      <div className="mt-0.5 font-medium text-navy-900 break-words">{item.value}</div>
-      {item.reason && item.status !== 'ok' && (
-        <div className="mt-1 text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded inline-block">{item.reason}</div>
+      {item.page && (
+        <button
+          onClick={() => onViewPDF(item.page, item.quote)}
+          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-navy-700 bg-brass-100 hover:bg-brass-200 rounded transition-colors whitespace-nowrap"
+          title={item.documentName ? `View in ${item.documentName}, page ${item.pageInDocument}` : `View on page ${item.page}`}
+        >
+          <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          {pageRef}
+        </button>
       )}
     </div>
-    {item.page && (
-      <button
-        onClick={() => onViewPDF(item.page, item.quote)}
-        className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-navy-700 bg-brass-100 hover:bg-brass-200 rounded transition-colors"
-        title={`View on page ${item.page}`}
-      >
-        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        p.{item.page}
-      </button>
-    )}
-  </div>
-);
+  );
+};
 
 const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: number, quote: string) => void }) => {
   const [expanded, setExpanded] = useState(false);
   const borderColor = { high: 'border-red-200 bg-red-50', warning: 'border-amber-200 bg-amber-50', low: 'border-slate-200 bg-cream-50' }[issue.severity] || '';
+  const pageRef = formatPageRef(issue.page, issue.documentName, issue.pageInDocument);
+  const fullPageRef = issue.documentName 
+    ? `${issue.documentName}, page ${issue.pageInDocument}` 
+    : `Page ${issue.page}`;
+  
   return (
     <div className={`border rounded-lg overflow-hidden ${borderColor}`}>
       <button onClick={() => setExpanded(!expanded)} className="w-full p-4 text-left flex items-start gap-3">
@@ -196,15 +218,18 @@ const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: numbe
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-medium text-navy-900">{issue.title}</h4>
-            <span 
-              onClick={(e) => { e.stopPropagation(); onViewPDF(issue.page, issue.quote); }}
-              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-navy-700 bg-brass-100 hover:bg-brass-200 rounded cursor-pointer transition-colors"
-            >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              p.{issue.page}
-            </span>
+            {issue.page > 0 && (
+              <span 
+                onClick={(e) => { e.stopPropagation(); onViewPDF(issue.page, issue.quote); }}
+                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-navy-700 bg-brass-100 hover:bg-brass-200 rounded cursor-pointer transition-colors"
+                title={fullPageRef}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {pageRef}
+              </span>
+            )}
           </div>
           <p className="mt-1 text-sm text-slate-600 line-clamp-2">{issue.finding}</p>
         </div>
@@ -234,12 +259,14 @@ const IssueCard = ({ issue, onViewPDF }: { issue: Issue; onViewPDF: (page: numbe
               <blockquote className="text-sm text-slate-600 italic border-l-2 border-slate-300 pl-3">&ldquo;{issue.quote}&rdquo;</blockquote>
             </div>
           )}
-          <button onClick={() => onViewPDF(issue.page, issue.quote)} className="text-sm text-brass-600 hover:text-brass-700 font-medium flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            View on Page {issue.page}
-          </button>
+          {issue.page > 0 && (
+            <button onClick={() => onViewPDF(issue.page, issue.quote)} className="text-sm text-brass-600 hover:text-brass-700 font-medium flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              View in {fullPageRef}
+            </button>
+          )}
         </div>
       )}
     </div>
