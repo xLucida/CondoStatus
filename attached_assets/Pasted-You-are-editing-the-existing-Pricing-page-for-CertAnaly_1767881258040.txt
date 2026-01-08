@@ -1,0 +1,131 @@
+You are editing the existing Pricing page for CertAnalyzer. Goal: make it lawyer-first, usage-only (no feature tiering), and align the unit of value to a PROPERTY REVIEW (one condo unit/address) that can include multiple PDFs (often 4–15). Plans differ ONLY by usage and overage rate.
+
+Constraints
+- Keep the current visual style (minimal, professional, modern).
+- Do NOT introduce feature differentiators between plans. All plans include the same product.
+- Plans: ONLY three selectable options: Pay-as-you-go, Small Practice, Firm.
+- Optional: add a non-priced “Enterprise” section as a simple “Contact us” CTA (not a plan users can self-select).
+- Remove “analysis/credits/checks” language everywhere.
+- Do NOT invent backend behavior. If something is not implemented, implement as copy only and add a TODO comment.
+
+========================================================
+TASK 1 — Rename the unit everywhere
+========================================================
+Replace “analysis/analyses/credits/checks” with:
+- Primary term: “Property Review”
+- Add parenthetical once near the top: “(one unit/address)”
+Example:
+- “10 Property Reviews / month”
+- “Overage: $20 / Property Review”
+
+Ensure consistency across:
+- plan cards
+- tooltips
+- FAQ
+- buttons/CTAs
+
+========================================================
+TASK 2 — Update the plan grid (3 plans only)
+========================================================
+Update the plan cards to exactly:
+
+1) Pay-as-you-go
+- Title: “Pay-as-you-go”
+- Price: “$49”
+- Unit: “per Property Review”
+- CTA: “Buy a Property Review” (or “Buy Reviews”)
+- Small helper line (optional): “Best for occasional files.”
+
+2) Small Practice
+- Title: “Small Practice”
+- Price: “$149 / month”
+- Included: “10 Property Reviews / month”
+- Overage: “$20 / Property Review”
+- CTA: “Start Small Practice”
+
+3) Firm (Most popular)
+- Title: “Firm”
+- Badge: “Most popular”
+- Price: “$299 / month”
+- Included: “35 Property Reviews / month”
+- Overage: “$12 / Property Review”
+- CTA: “Start Firm”
+
+Remove any other paid tiers from the UI.
+
+========================================================
+TASK 3 — Add definition block ABOVE the plan grid
+========================================================
+Insert a concise block directly below the pricing header.
+
+Heading: “What counts as a Property Review?”
+Body (use exactly):
+“One Property Review covers one condo unit/address. It can include multiple PDFs (status certificate + supplementary documents) and produces one consolidated report.”
+
+========================================================
+TASK 4 — Add package limits (unit definition; not feature gating)
+========================================================
+Add directly under the definition block (use exactly):
+“Limits: up to 600 total pages or 75 MB across all documents for that property. If a package exceeds limits, you may be asked to split it into two parts (each part counts as a separate Property Review).”
+
+========================================================
+TASK 5 — Overage billing behavior (do not leave ambiguous)
+========================================================
+Choose ONE behavior and reflect it in copy + FAQ:
+
+Option A (only if implemented): “Overages are billed automatically at your plan rate.”
+Option B (if auto-billing not implemented): “We’ll pause and ask before billing overages.”
+
+Implement ONLY what is true today. If not implemented, add a TODO comment.
+
+========================================================
+TASK 6 — Replace per-plan feature lists with ONE shared “Included in every plan”
+========================================================
+If the current page has per-plan feature bullet lists, remove them.
+Add ONE shared list under the cards.
+
+Heading: “Included in every plan”
+Bullets (only keep what exists today; remove any that don’t):
+- Executive summary and severity overview
+- Red flags with page citations
+- Key numbers extracted
+- Missing / not disclosed detection
+- Questions-to-ask checklist
+- Exportable report (PDF/print)
+
+========================================================
+TASK 7 — Update FAQ to match property-based multi-PDF reality
+========================================================
+Add/update:
+
+Q: “What counts as a Property Review?”
+A: “One Property Review covers one condo unit/address and can include multiple PDFs. It produces one consolidated report.”
+
+Q: “How many documents can I upload for one property?”
+A: “A Property Review can include multiple PDFs. Each review covers up to 600 total pages or 75 MB across all documents.”
+
+Q: “What happens if I go over my monthly usage?”
+A: Use the exact overage behavior chosen in TASK 5.
+
+Q: “Can I cancel anytime?”
+A: “Yes. Your plan remains active until the end of your billing period.” (only if true)
+
+========================================================
+TASK 8 — Optional Enterprise CTA (not a plan)
+========================================================
+If the design has space beneath the plans, add a simple section:
+
+Title: “Need higher volume?”
+Body: “For 100+ Property Reviews/month, firm-wide billing, or procurement support.”
+CTA: “Contact us”
+
+Do NOT show a price and do NOT add this as a selectable plan.
+
+========================================================
+TASK 9 — Visual QA + commit
+========================================================
+- No remaining “analysis/credits/checks” language.
+- Firm plan has “Most popular” badge.
+- Definition block is visible before plans (ideally above the fold on desktop).
+- Mobile layout clean.
+- Commit changes.
