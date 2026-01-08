@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
 
@@ -33,8 +33,37 @@ export default function AnalyzePage() {
   const [progressMessage, setProgressMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [currentDocIndex, setCurrentDocIndex] = useState(0);
 
   const totalSize = files.reduce((sum, f) => sum + f.file.size, 0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Elapsed time timer
+  useEffect(() => {
+    if (analyzing) {
+      setElapsedTime(0);
+      timerRef.current = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [analyzing]);
+
+  const formatElapsedTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  };
 
   const handleFiles = useCallback((newFiles: FileList | File[]) => {
     const fileArray = Array.from(newFiles);
@@ -100,32 +129,33 @@ export default function AnalyzePage() {
     try {
       const propertyId = `prop-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      const fileData = await Promise.all(
-        files.map(async (f, index) => {
-          setProgressMessage(`Reading ${f.file.name}...`);
-          setProgress(5 + (index / files.length) * 25);
-          
-          const base64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              const result = reader.result as string;
-              resolve(result.split(',')[1]);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(f.file);
-          });
-          
-          return {
-            fileName: f.file.name,
-            fileType: f.file.type,
-            docType: f.docType,
-            file: base64,
+      const fileData: any[] = [];
+      for (let index = 0; index < files.length; index++) {
+        const f = files[index];
+        setCurrentDocIndex(index + 1);
+        setProgressMessage(`Reading document ${index + 1} of ${files.length}: ${f.file.name}`);
+        setProgress(5 + ((index + 1) / files.length) * 25);
+        
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]);
           };
-        })
-      );
+          reader.onerror = reject;
+          reader.readAsDataURL(f.file);
+        });
+        
+        fileData.push({
+          fileName: f.file.name,
+          fileType: f.file.type,
+          docType: f.docType,
+          file: base64,
+        });
+      }
 
       setProgress(35);
-      setProgressMessage('Sending to analysis engine...');
+      setProgressMessage(`Analyzing ${files.length} document${files.length > 1 ? 's' : ''}... This may take 1-2 minutes for scanned PDFs.`);
 
       const response = await fetch('/api/analyze', {
         method: 'POST',
@@ -139,8 +169,8 @@ export default function AnalyzePage() {
         }),
       });
 
-      setProgress(70);
-      setProgressMessage('Generating report...');
+      setProgress(85);
+      setProgressMessage('Finalizing report...');
 
       const data = await response.json();
 
@@ -376,23 +406,89 @@ export default function AnalyzePage() {
               </div>
             </div>
           ) : (
-            <div className="py-16 px-8 text-center">
-              <div className="w-16 h-16 border-4 border-brass-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-              <h3 className="font-serif text-xl font-semibold text-navy-900 mb-2">
-                Analyzing {files.length} Document{files.length !== 1 ? 's' : ''}...
-              </h3>
-              <p className="text-sm text-slate-500 mb-6">
-                {progressMessage}
-              </p>
-              <div className="w-full max-w-md mx-auto h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-brass-500 rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
+            <div className="py-12 px-8">
+              <div className="max-w-lg mx-auto">
+                {/* Spinner and Header */}
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 border-4 border-brass-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <h3 className="font-serif text-xl font-semibold text-navy-900">
+                    Analyzing {files.length} Document{files.length !== 1 ? 's' : ''}
+                  </h3>
+                  <div className="flex items-center justify-center gap-4 mt-2 text-sm text-slate-500">
+                    <span className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Elapsed: {formatElapsedTime(elapsedTime)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+                    <span>{progressMessage}</span>
+                    <span>{Math.round(progress)}%</span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-brass-400 to-brass-500 rounded-full transition-all duration-700 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Document Checklist */}
+                <div className="bg-cream-50 rounded-lg border border-slate-200 p-4 mb-6">
+                  <h4 className="text-sm font-medium text-slate-700 mb-3">Documents</h4>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {files.map((f, idx) => (
+                      <div key={f.id} className="flex items-center gap-2 text-sm">
+                        {idx + 1 < currentDocIndex ? (
+                          <span className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</span>
+                        ) : idx + 1 === currentDocIndex && progress < 35 ? (
+                          <span className="w-5 h-5 rounded-full border-2 border-brass-500 border-t-transparent animate-spin" />
+                        ) : progress >= 35 ? (
+                          <span className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">✓</span>
+                        ) : (
+                          <span className="w-5 h-5 rounded-full border-2 border-slate-300" />
+                        )}
+                        <span className={`truncate ${idx + 1 <= currentDocIndex || progress >= 35 ? 'text-slate-700' : 'text-slate-400'}`}>
+                          {f.file.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Stage Indicators */}
+                <div className="flex items-center justify-between text-xs">
+                  <div className={`flex flex-col items-center gap-1 ${progress >= 5 ? 'text-brass-600' : 'text-slate-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${progress >= 5 ? 'bg-brass-100' : 'bg-slate-100'}`}>
+                      {progress >= 35 ? '✓' : '📄'}
+                    </div>
+                    <span>Read</span>
+                  </div>
+                  <div className={`flex-1 h-0.5 mx-2 ${progress >= 35 ? 'bg-brass-300' : 'bg-slate-200'}`} />
+                  <div className={`flex flex-col items-center gap-1 ${progress >= 35 ? 'text-brass-600' : 'text-slate-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${progress >= 35 ? 'bg-brass-100' : 'bg-slate-100'}`}>
+                      {progress >= 85 ? '✓' : '🔍'}
+                    </div>
+                    <span>Analyze</span>
+                  </div>
+                  <div className={`flex-1 h-0.5 mx-2 ${progress >= 85 ? 'bg-brass-300' : 'bg-slate-200'}`} />
+                  <div className={`flex flex-col items-center gap-1 ${progress >= 85 ? 'text-brass-600' : 'text-slate-400'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${progress >= 85 ? 'bg-brass-100' : 'bg-slate-100'}`}>
+                      {progress >= 100 ? '✓' : '📊'}
+                    </div>
+                    <span>Report</span>
+                  </div>
+                </div>
+
+                <p className="text-center text-xs text-slate-400 mt-6">
+                  Scanned PDFs require OCR and may take longer to process
+                </p>
               </div>
-              <p className="text-xs text-slate-400 mt-3">
-                This may take 1-2 minutes for multiple documents
-              </p>
             </div>
           )}
         </div>
