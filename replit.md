@@ -60,7 +60,7 @@ types/                 # TypeScript type definitions
 ## Pages
 - `/` - Landing page with hero, value props, risk features, trust signals
 - `/analyze` - Multi-PDF upload with property container (address/unit), doc-type tagging
-- `/pricing` - Three tiers (Starter $49, Professional $149, Enterprise custom)
+- `/pricing` - Three tiers (Pay-as-you-go $49, Small Practice $149/mo, Firm $299/mo) with Property Review as unit
 - `/how-it-works` - 4-step process walkthrough
 - `/about` - Company mission and who we serve
 - `/contact` - Contact form and email addresses
@@ -131,6 +131,9 @@ The letter generator uses a robust three-way classification system to prevent mi
 7. Professional closing
 
 ## Recent Changes
+- January 8, 2026: **Pricing page overhaul** - Lawyer-first, usage-only pricing with Property Review as the unit of value
+- January 8, 2026: Three plans: Pay-as-you-go ($49), Small Practice ($149/mo, 10 reviews), Firm ($299/mo, 35 reviews)
+- January 8, 2026: Added definition block explaining Property Review, shared features section, updated FAQ
 - January 7, 2026: **Multi-document property-based UX** - Users now upload multiple PDFs per property with address/unit fields
 - January 7, 2026: Added property container with address, unit, and city fields
 - January 7, 2026: Implemented multi-file upload with doc-type dropdown per file
