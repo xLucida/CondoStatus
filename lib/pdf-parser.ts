@@ -183,7 +183,8 @@ async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
       await page.render(renderContext as any).promise;
 
       const imageBuffer = canvas.toBuffer('image/png');
-      const { data: { text } } = await worker.recognize(imageBuffer);
+      const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+      const { data: { text } } = await worker.recognize(base64Image);
       pages.push(text.trim());
       
       page.cleanup();
