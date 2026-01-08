@@ -107,11 +107,13 @@ types/                 # TypeScript type definitions
 
 ## Report Features
 - **Property Header**: Shows address + unit, document count, total pages, total size
-- **Page Reference Badges**: Each extracted item and issue shows a "p.X" badge indicating the source page
+- **Document-Aware Page References**: Page badges show "DocName p.X" format (e.g., "Reserve Fund Summary p.3") with document name and original page number
+- **Multi-Document Tracking**: Each page tracks documentName, pageInDocument, and globalPage for accurate navigation across combined documents
+- **Fuzzy Quote Matching**: 4-stage matching (exact → normalized → word-overlap → first words) handles OCR text errors
 - **PDF Navigation**: Clicking page badges opens and navigates to that page in the PDF viewer
 - **Split View**: Report page shows analysis on left, PDF viewer on right for easy verification
 - **Client Letter Generator**: Professional lawyer-style letters with three-way value classification
-- **OCR Support**: Automatic OCR fallback for scanned/image-based PDFs using Tesseract.js
+- **OCR Support**: Automatic OCR fallback for scanned/image-based PDFs using Tesseract.js with dommatrix polyfill
 
 ## Client Letter Generator
 The letter generator uses a robust three-way classification system to prevent misstating facts:
@@ -131,6 +133,9 @@ The letter generator uses a robust three-way classification system to prevent mi
 7. Professional closing
 
 ## Recent Changes
+- January 8, 2026: **Document-aware page references** - Page badges now show document name + page (e.g., "Reserve Fund p.3") instead of global page numbers
+- January 8, 2026: **Fuzzy quote matching** - 4-stage matching algorithm handles OCR errors while maintaining accuracy
+- January 8, 2026: **Enhanced AI prompts** - Stronger instructions for exact verbatim quotes to improve page reference reliability
 - January 8, 2026: **Graceful PDF error handling** - Analysis continues even if some PDFs fail to parse, with warnings shown on report
 - January 8, 2026: **Pricing page overhaul** - Lawyer-first, usage-only pricing with Property Review as the unit of value
 - January 8, 2026: Three plans: Pay-as-you-go ($49), Small Practice ($149/mo, 10 reviews), Firm ($299/mo, 35 reviews)
