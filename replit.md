@@ -133,6 +133,9 @@ The letter generator uses a robust three-way classification system to prevent mi
 7. Professional closing
 
 ## Recent Changes
+- January 8, 2026: **Major performance optimization** - Native Tesseract CLI with parallel processing (3 pages/3 docs at a time), should reduce OCR time by 3-4x
+- January 8, 2026: **Venice API retry logic** - Automatic retries with exponential backoff for temporary failures, better error messages
+- January 8, 2026: **Increased timeout** - API timeout extended to 5 minutes for large document batches
 - January 8, 2026: **Fixed OCR for scanned PDFs** - Replaced pdfjs+node-canvas with pdftoppm (poppler) for reliable rendering of image-based PDFs
 - January 8, 2026: **Document-aware page references** - Page badges now show document name + page (e.g., "Reserve Fund p.3") instead of global page numbers
 - January 8, 2026: **Fuzzy quote matching** - 4-stage matching algorithm handles OCR errors while maintaining accuracy
