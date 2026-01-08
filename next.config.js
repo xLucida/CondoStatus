@@ -12,11 +12,16 @@ const nextConfig = {
       topLevelAwait: true,
     };
     
-    // Handle pdf.js worker and canvas on server-side
-    if (isServer) {
-      config.resolve.alias.canvas = false;
-    }
+    // Handle encoding alias for server-side
     config.resolve.alias.encoding = false;
+    
+    // Externalize canvas for server-side to use native bindings
+    if (isServer) {
+      config.externals = config.externals || [];
+      if (Array.isArray(config.externals)) {
+        config.externals.push('canvas');
+      }
+    }
     return config;
   },
 };
