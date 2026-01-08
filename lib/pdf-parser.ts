@@ -1,18 +1,24 @@
 // Polyfill for Node < 22 (Promise.withResolvers support)
 import "@ungap/with-resolvers";
-import pdf from 'pdf-parse';
-import { createCanvas, Canvas, CanvasRenderingContext2D, DOMMatrix as CanvasDOMMatrix } from 'canvas';
-import Tesseract from 'tesseract.js';
 
-// Polyfill DOMMatrix for Node.js (required by pdfjs-dist for rendering)
+// Polyfill DOMMatrix and Path2D for Node.js (required by pdfjs-dist for rendering)
+// Must be imported BEFORE pdfjs-dist
+import DOMMatrixPolyfill from 'dommatrix';
+import 'path2d-polyfill';
+
 if (typeof globalThis.DOMMatrix === 'undefined') {
-  (globalThis as any).DOMMatrix = CanvasDOMMatrix;
+  (globalThis as any).DOMMatrix = DOMMatrixPolyfill;
 }
+
+import pdf from 'pdf-parse';
+import { createCanvas, Canvas, CanvasRenderingContext2D } from 'canvas';
+import Tesseract from 'tesseract.js';
 
 // Dynamic import for pdfjs-dist to avoid webpack bundling issues
 async function getPdfjs() {
   // @ts-ignore - dynamic import for server compatibility
-  const pdfjsLib = await import('pdfjs-dist/build/pdf.mjs');
+  // Use legacy build for better Node.js compatibility
+  const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
   return pdfjsLib;
 }
 
