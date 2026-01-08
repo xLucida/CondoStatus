@@ -113,7 +113,7 @@ types/                 # TypeScript type definitions
 - **PDF Navigation**: Clicking page badges opens and navigates to that page in the PDF viewer
 - **Split View**: Report page shows analysis on left, PDF viewer on right for easy verification
 - **Client Letter Generator**: Professional lawyer-style letters with three-way value classification
-- **OCR Support**: Automatic OCR fallback for scanned/image-based PDFs using Tesseract.js with dommatrix polyfill
+- **OCR Support**: Automatic OCR fallback for scanned/image-based PDFs using pdftoppm (poppler) + Tesseract.js for reliable image extraction
 
 ## Client Letter Generator
 The letter generator uses a robust three-way classification system to prevent misstating facts:
@@ -133,6 +133,7 @@ The letter generator uses a robust three-way classification system to prevent mi
 7. Professional closing
 
 ## Recent Changes
+- January 8, 2026: **Fixed OCR for scanned PDFs** - Replaced pdfjs+node-canvas with pdftoppm (poppler) for reliable rendering of image-based PDFs
 - January 8, 2026: **Document-aware page references** - Page badges now show document name + page (e.g., "Reserve Fund p.3") instead of global page numbers
 - January 8, 2026: **Fuzzy quote matching** - 4-stage matching algorithm handles OCR errors while maintaining accuracy
 - January 8, 2026: **Enhanced AI prompts** - Stronger instructions for exact verbatim quotes to improve page reference reliability

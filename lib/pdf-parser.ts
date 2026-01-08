@@ -11,14 +11,23 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
 
 import pdf from 'pdf-parse';
 import Tesseract from 'tesseract.js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+
+const execAsync = promisify(exec);
 
 // Use dynamic require to bypass webpack bundling for native canvas module
 // This ensures the native bindings are loaded at runtime, not bundled
 let canvasModule: any = null;
 function getCanvas() {
   if (!canvasModule) {
+    console.log('Loading canvas module via dynamic require...');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     canvasModule = require('canvas');
+    console.log('Canvas module loaded, createCanvas type:', typeof canvasModule.createCanvas);
   }
   return canvasModule;
 }
@@ -143,69 +152,67 @@ export async function parsePDF(buffer: Buffer): Promise<PDFParseResult> {
 const MAX_OCR_PAGES = 50;
 
 async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
-  const pdfjsLib = await getPdfjs();
-  const uint8Array = new Uint8Array(buffer);
-  const loadingTask = pdfjsLib.getDocument({
-    data: uint8Array,
-    useSystemFonts: true,
-    disableWorker: true,
-  } as any);
+  // Use pdftoppm to convert PDF pages to images, then OCR them
+  // This bypasses the pdfjs+node-canvas compatibility issues with scanned PDFs
   
-  let pdfDoc;
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pdf-ocr-'));
+  const tempPdfPath = path.join(tempDir, 'input.pdf');
+  
   let worker;
   
   try {
-    pdfDoc = await loadingTask.promise;
-  } catch (loadError: any) {
-    // Handle pdfjs-specific errors
-    const errorName = loadError?.name || '';
-    const errorMessage = loadError?.message || String(loadError);
+    // Write PDF to temp file
+    fs.writeFileSync(tempPdfPath, buffer);
+    console.log(`Written PDF to ${tempPdfPath}, size: ${buffer.length} bytes`);
     
-    console.error(`pdfjs load error: name=${errorName}, message=${errorMessage}`);
+    // Get page count using pdfinfo
+    let numPages = 1;
+    try {
+      const { stdout } = await execAsync(`pdfinfo "${tempPdfPath}" | grep Pages | awk '{print $2}'`);
+      numPages = parseInt(stdout.trim()) || 1;
+    } catch {
+      // If pdfinfo fails, try to continue with 1 page
+      console.log('Could not get page count, defaulting to 1');
+    }
     
-    if (errorName === 'PasswordException' || errorMessage.includes('password')) {
-      throw new Error('PasswordException: PDF requires a password');
-    }
-    if (errorName === 'InvalidPDFException' || errorMessage.includes('Invalid PDF')) {
-      throw new Error('InvalidPDFException: PDF structure is corrupted');
-    }
-    throw loadError;
-  }
-  
-  try {
-    const numPages = pdfDoc.numPages;
+    console.log(`PDF has ${numPages} pages`);
     const pagesToProcess = Math.min(numPages, MAX_OCR_PAGES);
-
+    
+    // Convert PDF pages to PNG images using pdftoppm
+    const imagePrefix = path.join(tempDir, 'page');
+    console.log(`Converting PDF to images with pdftoppm...`);
+    
+    await execAsync(`pdftoppm -png -r 200 -l ${pagesToProcess} "${tempPdfPath}" "${imagePrefix}"`);
+    
+    // Find all generated image files
+    const imageFiles = fs.readdirSync(tempDir)
+      .filter(f => f.startsWith('page') && f.endsWith('.png'))
+      .sort();
+    
+    console.log(`Generated ${imageFiles.length} page images`);
+    
+    if (imageFiles.length === 0) {
+      throw new Error('pdftoppm did not generate any images');
+    }
+    
+    // OCR each page
     const pages: string[] = [];
     worker = await Tesseract.createWorker('eng');
-
-    for (let pageNum = 1; pageNum <= pagesToProcess; pageNum++) {
-      console.log(`OCR processing page ${pageNum}/${pagesToProcess}...`);
-      const page = await pdfDoc.getPage(pageNum);
-      const viewport = page.getViewport({ scale: OCR_SCALE });
-
-      const canvasFactory = new NodeCanvasFactory();
-      const { canvas, context } = canvasFactory.create(
-        Math.floor(viewport.width),
-        Math.floor(viewport.height)
-      );
-
-      const renderContext = {
-        canvasContext: context,
-        viewport,
-      };
-      await page.render(renderContext as any).promise;
-
-      const imageBuffer = canvas.toBuffer('image/png');
-      const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
-      const { data: { text } } = await worker.recognize(base64Image);
-      pages.push(text.trim());
+    
+    for (let i = 0; i < imageFiles.length; i++) {
+      const imagePath = path.join(tempDir, imageFiles[i]);
+      console.log(`OCR processing page ${i + 1}/${imageFiles.length}...`);
       
-      page.cleanup();
+      const imageBuffer = fs.readFileSync(imagePath);
+      const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+      
+      const { data: { text } } = await worker.recognize(base64Image);
+      console.log(`OCR extracted ${text.length} chars from page ${i + 1}`);
+      pages.push(text.trim());
     }
-
+    
     const fullText = pages.join('\n\n');
-
+    
     return {
       text: fullText,
       pageCount: numPages,
@@ -217,10 +224,16 @@ async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
     if (worker) {
       await worker.terminate();
     }
-    if (pdfDoc) {
-      pdfDoc.cleanup();
+    // Clean up temp files
+    try {
+      const files = fs.readdirSync(tempDir);
+      for (const file of files) {
+        fs.unlinkSync(path.join(tempDir, file));
+      }
+      fs.rmdirSync(tempDir);
+    } catch (e) {
+      console.error('Error cleaning up temp files:', e);
     }
-    loadingTask.destroy();
   }
 }
 
