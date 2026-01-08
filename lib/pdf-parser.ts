@@ -10,7 +10,6 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
 }
 
 import pdf from 'pdf-parse';
-import Tesseract from 'tesseract.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
@@ -150,66 +149,79 @@ export async function parsePDF(buffer: Buffer): Promise<PDFParseResult> {
 }
 
 const MAX_OCR_PAGES = 50;
+const OCR_CONCURRENCY = 3; // Process 3 pages in parallel (balance speed vs resources)
+
+// OCR a single page using native tesseract CLI (faster than WASM)
+async function ocrPageWithCLI(imagePath: string): Promise<string> {
+  try {
+    // tesseract outputs to stdout with - as output file
+    const { stdout } = await execAsync(`tesseract "${imagePath}" stdout -l eng --psm 3 2>/dev/null`);
+    return stdout.trim();
+  } catch (error) {
+    console.error(`OCR failed for ${imagePath}:`, error);
+    return ''; // Return empty on error, don't fail entire document
+  }
+}
 
 async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
-  // Use pdftoppm to convert PDF pages to images, then OCR them
-  // This bypasses the pdfjs+node-canvas compatibility issues with scanned PDFs
-  
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pdf-ocr-'));
   const tempPdfPath = path.join(tempDir, 'input.pdf');
   
-  let worker;
-  
   try {
-    // Write PDF to temp file
     fs.writeFileSync(tempPdfPath, buffer);
     console.log(`Written PDF to ${tempPdfPath}, size: ${buffer.length} bytes`);
     
-    // Get page count using pdfinfo
     let numPages = 1;
     try {
       const { stdout } = await execAsync(`pdfinfo "${tempPdfPath}" | grep Pages | awk '{print $2}'`);
       numPages = parseInt(stdout.trim()) || 1;
     } catch {
-      // If pdfinfo fails, try to continue with 1 page
       console.log('Could not get page count, defaulting to 1');
     }
     
     console.log(`PDF has ${numPages} pages`);
     const pagesToProcess = Math.min(numPages, MAX_OCR_PAGES);
     
-    // Convert PDF pages to PNG images using pdftoppm
     const imagePrefix = path.join(tempDir, 'page');
     console.log(`Converting PDF to images with pdftoppm...`);
     
     await execAsync(`pdftoppm -png -r 200 -l ${pagesToProcess} "${tempPdfPath}" "${imagePrefix}"`);
     
-    // Find all generated image files
     const imageFiles = fs.readdirSync(tempDir)
       .filter(f => f.startsWith('page') && f.endsWith('.png'))
       .sort();
     
-    console.log(`Generated ${imageFiles.length} page images`);
+    console.log(`Generated ${imageFiles.length} page images, using native tesseract CLI`);
     
     if (imageFiles.length === 0) {
       throw new Error('pdftoppm did not generate any images');
     }
     
-    // OCR each page
-    const pages: string[] = [];
-    worker = await Tesseract.createWorker('eng');
+    // Process pages in parallel batches using native tesseract CLI
+    const pages: string[] = new Array(imageFiles.length).fill('');
+    const startTime = Date.now();
     
-    for (let i = 0; i < imageFiles.length; i++) {
-      const imagePath = path.join(tempDir, imageFiles[i]);
-      console.log(`OCR processing page ${i + 1}/${imageFiles.length}...`);
+    for (let batchStart = 0; batchStart < imageFiles.length; batchStart += OCR_CONCURRENCY) {
+      const batchEnd = Math.min(batchStart + OCR_CONCURRENCY, imageFiles.length);
+      const batchPromises: Promise<void>[] = [];
       
-      const imageBuffer = fs.readFileSync(imagePath);
-      const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`;
+      for (let i = batchStart; i < batchEnd; i++) {
+        const imagePath = path.join(tempDir, imageFiles[i]);
+        const pageIndex = i;
+        
+        batchPromises.push(
+          ocrPageWithCLI(imagePath).then(text => {
+            pages[pageIndex] = text;
+            console.log(`OCR page ${pageIndex + 1}/${imageFiles.length}: ${text.length} chars`);
+          })
+        );
+      }
       
-      const { data: { text } } = await worker.recognize(base64Image);
-      console.log(`OCR extracted ${text.length} chars from page ${i + 1}`);
-      pages.push(text.trim());
+      await Promise.all(batchPromises);
     }
+    
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(`OCR completed: ${imageFiles.length} pages in ${elapsed}s`);
     
     const fullText = pages.join('\n\n');
     
@@ -221,9 +233,6 @@ async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
       usedOCR: true,
     };
   } finally {
-    if (worker) {
-      await worker.terminate();
-    }
     // Clean up temp files
     try {
       const files = fs.readdirSync(tempDir);

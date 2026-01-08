@@ -453,29 +453,87 @@ CRITICAL EXTRACTION RULES:
 
 ALWAYS extract the exact quote that supports each data point. If information is not found, set status to "missing" and value to "NOT FOUND".`;
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2000;
+
+async function callVeniceWithRetry(
+  venice: OpenAI,
+  text: string,
+  retries = 0
+): Promise<string> {
+  try {
+    console.log(`Calling Venice API (attempt ${retries + 1}/${MAX_RETRIES})...`);
+    const startTime = Date.now();
+    
+    const response = await venice.chat.completions.create({
+      model: 'zai-org-glm-4.7',
+      max_tokens: 8000,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a legal document analyzer. Always respond with valid JSON only - no markdown, no code blocks, no explanations. Output raw JSON starting with { and ending with }.',
+        },
+        {
+          role: 'user',
+          content: `${EXTRACTION_PROMPT}\n\n--- STATUS CERTIFICATE TEXT ---\n\n${text}`,
+        },
+      ],
+    });
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(`Venice API response received in ${elapsed}s`);
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No response content from Venice API');
+    }
+    return content;
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`Venice API error: ${errorMsg}`);
+    
+    // Check if we should retry
+    const isRetryable = 
+      errorMsg.includes('timeout') ||
+      errorMsg.includes('ECONNRESET') ||
+      errorMsg.includes('503') ||
+      errorMsg.includes('502') ||
+      errorMsg.includes('temporarily') ||
+      errorMsg.includes('unavailable') ||
+      errorMsg.includes('rate limit');
+    
+    if (isRetryable && retries < MAX_RETRIES - 1) {
+      const delay = RETRY_DELAY_MS * (retries + 1);
+      console.log(`Retrying Venice API in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return callVeniceWithRetry(venice, text, retries + 1);
+    }
+    
+    // Give user-friendly error messages
+    if (errorMsg.includes('rate limit')) {
+      throw new Error('AI service is busy. Please try again in a few minutes.');
+    }
+    if (errorMsg.includes('timeout') || errorMsg.includes('ECONNRESET')) {
+      throw new Error('AI service timed out. Please try again with fewer documents.');
+    }
+    if (errorMsg.includes('503') || errorMsg.includes('502') || errorMsg.includes('unavailable')) {
+      throw new Error('AI service is temporarily unavailable. Please try again in a few minutes.');
+    }
+    
+    throw new Error(`AI analysis failed: ${errorMsg}`);
+  }
+}
+
 export async function analyzeStatusCertificate(
   text: string,
   pages: string[] = []
 ): Promise<ExtractionResult> {
   const venice = createVeniceClient();
-  // Use GLM-4.7 via Venice API (OpenAI-compatible)
-  const response = await venice.chat.completions.create({
-    model: 'zai-org-glm-4.7',  // GLM-4.7 on Venice
-    max_tokens: 8000,
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a legal document analyzer. Always respond with valid JSON only - no markdown, no code blocks, no explanations. Output raw JSON starting with { and ending with }.',
-      },
-      {
-        role: 'user',
-        content: `${EXTRACTION_PROMPT}\n\n--- STATUS CERTIFICATE TEXT ---\n\n${text}`,
-      },
-    ],
-  });
+  
+  // Call Venice API with retry logic
+  const content = await callVeniceWithRetry(venice, text);
 
   // Extract JSON from response (OpenAI format)
-  const content = response.choices[0]?.message?.content;
   if (!content) {
     throw new Error('No response content from Venice API');
   }

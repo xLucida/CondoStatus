@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { analyzeStatusCertificate } from '@/lib/claude-analyzer';
 import { parsePDF } from '@/lib/pdf-parser';
 
-export const maxDuration = 120; // Allow up to 120 seconds for multi-document analysis
+export const maxDuration = 300; // Allow up to 5 minutes for multi-document analysis with OCR
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 5;
+const DOC_PARSE_CONCURRENCY = 3; // Parse up to 3 documents in parallel
 const MIN_EXTRACTED_TEXT_LENGTH = 100;
 const MAX_TOTAL_SIZE = 75 * 1024 * 1024; // 75MB total
 const MAX_FILES = 20;
@@ -166,40 +167,66 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse all PDFs - continue even if some fail
+    // Parse all PDFs in parallel - continue even if some fail
     const parsedDocs: ParsedDocument[] = [];
     const failedDocs: FailedDocument[] = [];
-    let totalPageCount = 0;
     let anyUsedOCR = false;
 
-    for (const f of files) {
-      try {
-        const pdfBuffer = Buffer.from(f.file, 'base64');
-        const pdfData = await parsePDF(pdfBuffer);
+    console.log(`Parsing ${files.length} documents with concurrency ${DOC_PARSE_CONCURRENCY}...`);
+    const parseStartTime = Date.now();
+
+    // Process documents in parallel batches
+    for (let batchStart = 0; batchStart < files.length; batchStart += DOC_PARSE_CONCURRENCY) {
+      const batchEnd = Math.min(batchStart + DOC_PARSE_CONCURRENCY, files.length);
+      const batch = files.slice(batchStart, batchEnd);
+      
+      const batchResults = await Promise.allSettled(
+        batch.map(async (f) => {
+          const pdfBuffer = Buffer.from(f.file, 'base64');
+          const pdfData = await parsePDF(pdfBuffer);
+          return {
+            fileName: f.fileName,
+            docType: f.docType || 'other',
+            text: pdfData.text,
+            pageCount: pdfData.pageCount,
+            usedOCR: pdfData.usedOCR || false,
+            pages: pdfData.pages || [],
+          };
+        })
+      );
+
+      // Collect results from this batch
+      for (let i = 0; i < batchResults.length; i++) {
+        const result = batchResults[i];
+        const f = batch[i];
         
-        parsedDocs.push({
-          fileName: f.fileName,
-          docType: f.docType || 'other',
-          text: pdfData.text,
-          pageCount: pdfData.pageCount,
-          pageOffset: totalPageCount,
-          usedOCR: pdfData.usedOCR || false,
-          pages: pdfData.pages || [],
-        });
-        
-        totalPageCount += pdfData.pageCount;
-        if (pdfData.usedOCR) anyUsedOCR = true;
-        
-      } catch (parseError) {
-        const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown error';
-        console.error(`Error parsing ${f.fileName}:`, errorMessage);
-        failedDocs.push({
-          fileName: f.fileName,
-          docType: f.docType || 'other',
-          error: `Could not extract text from this PDF: ${errorMessage}`,
-        });
+        if (result.status === 'fulfilled') {
+          parsedDocs.push({
+            ...result.value,
+            pageOffset: 0, // Will be calculated after all docs are parsed
+          });
+          if (result.value.usedOCR) anyUsedOCR = true;
+        } else {
+          const errorMessage = result.reason instanceof Error ? result.reason.message : 'Unknown error';
+          console.error(`Error parsing ${f.fileName}:`, errorMessage);
+          failedDocs.push({
+            fileName: f.fileName,
+            docType: f.docType || 'other',
+            error: `Could not extract text from this PDF: ${errorMessage}`,
+          });
+        }
       }
     }
+
+    // Calculate page offsets after parallel parsing
+    let totalPageCount = 0;
+    for (const doc of parsedDocs) {
+      doc.pageOffset = totalPageCount;
+      totalPageCount += doc.pageCount;
+    }
+
+    const parseElapsed = ((Date.now() - parseStartTime) / 1000).toFixed(1);
+    console.log(`Document parsing complete: ${parsedDocs.length} docs, ${totalPageCount} pages in ${parseElapsed}s`);
 
     // If ALL files failed to parse, return error
     if (parsedDocs.length === 0) {

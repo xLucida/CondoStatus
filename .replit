@@ -5,7 +5,7 @@ integrations = ["github:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["libuuid", "cairo", "pango", "libjpeg", "giflib", "librsvg", "pixman", "poppler"]
+packages = ["libuuid", "cairo", "pango", "libjpeg", "giflib", "librsvg", "pixman", "poppler", "tesseract", "tesseract4"]
 
 [workflows]
 runButton = "Project"
