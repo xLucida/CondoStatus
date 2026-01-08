@@ -131,6 +131,7 @@ The letter generator uses a robust three-way classification system to prevent mi
 7. Professional closing
 
 ## Recent Changes
+- January 8, 2026: **Graceful PDF error handling** - Analysis continues even if some PDFs fail to parse, with warnings shown on report
 - January 8, 2026: **Pricing page overhaul** - Lawyer-first, usage-only pricing with Property Review as the unit of value
 - January 8, 2026: Three plans: Pay-as-you-go ($49), Small Practice ($149/mo, 10 reviews), Firm ($299/mo, 35 reviews)
 - January 8, 2026: Added definition block explaining Property Review, shared features section, updated FAQ

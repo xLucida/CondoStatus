@@ -154,7 +154,7 @@ export default function AnalyzePage() {
       setProgress(100);
       setProgressMessage('Complete!');
 
-      // Store analysis data
+      // Store analysis data (including warnings about failed documents)
       sessionStorage.setItem('currentAnalysis', JSON.stringify(data));
       sessionStorage.setItem('currentProperty', JSON.stringify({
         propertyId,
@@ -166,6 +166,7 @@ export default function AnalyzePage() {
           size: f.file.size,
           docType: f.docType,
         })),
+        warnings: data.warnings || [],
       }));
       
       // Store first PDF for viewing (can be enhanced later)

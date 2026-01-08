@@ -606,6 +606,7 @@ interface PropertyInfo {
   unit?: string;
   city?: string;
   files?: Array<{ name: string; size: number; docType: string }>;
+  warnings?: string[];
 }
 
 interface DocumentsSummary {
@@ -787,6 +788,22 @@ export default function ReportPage() {
         <div className={`${showPDF ? 'w-1/2' : 'w-full'} overflow-auto print:w-full`}>
           <div className="p-6 max-w-3xl mx-auto space-y-6">
             
+            {/* Warnings about failed documents */}
+            {propertyInfo?.warnings && propertyInfo.warnings.length > 0 && (
+              <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <div className="flex items-start gap-3">
+                  <span className="text-amber-500 text-xl">⚠️</span>
+                  <div>
+                    <div className="font-semibold text-amber-800">Some documents could not be processed</div>
+                    {propertyInfo.warnings.map((warning, index) => (
+                      <div key={index} className="text-sm text-amber-700 mt-1">{warning}</div>
+                    ))}
+                    <div className="text-xs text-amber-600 mt-2">The analysis below is based only on the documents that were successfully processed.</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Executive Summary */}
             <div className="bg-white rounded-xl shadow-card border border-slate-200 p-6">
               {analysis.error && (

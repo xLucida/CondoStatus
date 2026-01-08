@@ -27,6 +27,12 @@ interface ParsedDocument {
   usedOCR: boolean;
 }
 
+interface FailedDocument {
+  fileName: string;
+  docType: string;
+  error: string;
+}
+
 function getClientIp(request: NextRequest) {
   const forwardedFor = request.headers.get('x-forwarded-for');
   if (forwardedFor) {
@@ -150,8 +156,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse all PDFs
+    // Parse all PDFs - continue even if some fail
     const parsedDocs: ParsedDocument[] = [];
+    const failedDocs: FailedDocument[] = [];
     let totalPageCount = 0;
     let anyUsedOCR = false;
 
@@ -173,12 +180,23 @@ export async function POST(request: NextRequest) {
         if (pdfData.usedOCR) anyUsedOCR = true;
         
       } catch (parseError) {
-        console.error(`Error parsing ${f.fileName}:`, parseError);
-        return NextResponse.json(
-          { success: false, error: `Failed to parse ${f.fileName}. Please ensure it's a valid PDF.` },
-          { status: 422 }
-        );
+        const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown error';
+        console.error(`Error parsing ${f.fileName}:`, errorMessage);
+        failedDocs.push({
+          fileName: f.fileName,
+          docType: f.docType || 'other',
+          error: `Could not extract text from this PDF: ${errorMessage}`,
+        });
       }
+    }
+
+    // If ALL files failed to parse, return error
+    if (parsedDocs.length === 0) {
+      const failedNames = failedDocs.map(d => d.fileName).join(', ');
+      return NextResponse.json(
+        { success: false, error: `Failed to parse any documents. Could not extract text from: ${failedNames}` },
+        { status: 422 }
+      );
     }
 
     // Combine all text with document markers
@@ -216,6 +234,8 @@ export async function POST(request: NextRequest) {
     // Build documents summary
     const documentsSummary = {
       count: files.length,
+      successfulCount: parsedDocs.length,
+      failedCount: failedDocs.length,
       totalPages: totalPageCount,
       totalSize: totalBytes,
       files: parsedDocs.map(doc => ({
@@ -224,6 +244,7 @@ export async function POST(request: NextRequest) {
         pageCount: doc.pageCount,
         pageOffset: doc.pageOffset,
       })),
+      failedFiles: failedDocs,
     };
 
     return NextResponse.json({
@@ -241,6 +262,9 @@ export async function POST(request: NextRequest) {
       extractedTextLength: combinedText.length,
       pageCount: totalPageCount,
       usedOCR: anyUsedOCR,
+      warnings: failedDocs.length > 0 
+        ? [`${failedDocs.length} document(s) could not be parsed and were excluded from analysis: ${failedDocs.map(d => d.fileName).join(', ')}`]
+        : [],
     });
 
   } catch (error) {
