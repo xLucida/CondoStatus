@@ -573,13 +573,6 @@ export async function analyzeStatusCertificate(
   const riskRating = allowedRatings.includes(parsed.risk_rating as any)
     ? (parsed.risk_rating as ExtractionResult['risk_rating'])
     : 'YELLOW';
-  if (!parsed.risk_rating || !allowedRatings.includes(parsed.risk_rating as any)) {
-    validationErrors.push('Missing or invalid "risk_rating".');
-  }
-
-  if (!parsed.summary || typeof parsed.summary !== 'object') {
-    validationErrors.push('Missing "summary".');
-  }
 
   if (validationErrors.length > 0) {
     const calculated = calculateSummary(sections as Record<string, Section>);
