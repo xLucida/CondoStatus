@@ -10,8 +10,21 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
 }
 
 import pdf from 'pdf-parse';
-import { createCanvas, Canvas, CanvasRenderingContext2D } from 'canvas';
 import Tesseract from 'tesseract.js';
+
+// Use dynamic require to bypass webpack bundling for native canvas module
+// This ensures the native bindings are loaded at runtime, not bundled
+let canvasModule: any = null;
+function getCanvas() {
+  if (!canvasModule) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    canvasModule = require('canvas');
+  }
+  return canvasModule;
+}
+
+type Canvas = any;
+type CanvasRenderingContext2D = any;
 
 // Dynamic import for pdfjs-dist to avoid webpack bundling issues
 async function getPdfjs() {
@@ -38,6 +51,7 @@ const OCR_SCALE = 2.0;
 
 class NodeCanvasFactory {
   create(width: number, height: number) {
+    const { createCanvas } = getCanvas();
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d');
     return { canvas, context };
