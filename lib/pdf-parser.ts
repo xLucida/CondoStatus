@@ -148,8 +148,8 @@ export async function parsePDF(buffer: Buffer): Promise<PDFParseResult> {
   }
 }
 
-const MAX_OCR_PAGES = 50;
-const OCR_CONCURRENCY = 3; // Process 3 pages in parallel (balance speed vs resources)
+const MAX_OCR_PAGES = 30; // Limit pages to keep processing fast
+const OCR_CONCURRENCY = 5; // Process 5 pages in parallel for speed
 
 // OCR a single page using native tesseract CLI (faster than WASM)
 async function ocrPageWithCLI(imagePath: string): Promise<string> {
@@ -185,7 +185,8 @@ async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
     const imagePrefix = path.join(tempDir, 'page');
     console.log(`Converting PDF to images with pdftoppm...`);
     
-    await execAsync(`pdftoppm -png -r 200 -l ${pagesToProcess} "${tempPdfPath}" "${imagePrefix}"`);
+    // Use 150 DPI for faster processing (good balance of speed vs quality)
+    await execAsync(`pdftoppm -png -r 150 -l ${pagesToProcess} "${tempPdfPath}" "${imagePrefix}"`);
     
     const imageFiles = fs.readdirSync(tempDir)
       .filter(f => f.startsWith('page') && f.endsWith('.png'))
