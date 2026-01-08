@@ -1,0 +1,56 @@
+```text
+Update the existing Pricing page UI/copy based on the attached screenshot. Goal: tighten clarity and reduce friction for lawyers while keeping the current minimal/professional design and the 3-plan + Contact CTA structure.
+
+Constraints
+- Keep the same layout and styling (cards, spacing, typography).
+- Plans remain: Pay-as-you-go, Small Practice, Firm (Most popular) + “Need higher volume?” Contact us.
+- No feature tiering: the “Included in every plan” list remains shared.
+- Do not change the actual prices/quantities unless explicitly stated below.
+
+========================================================
+TASK 1 — Fix the definition box copy (remove redundancy + shorten)
+========================================================
+In the “What counts as a Property Review?” box:
+1) Remove the duplicate parenthetical “(one unit/address)” so it doesn’t read “unit/address (one unit/address)”.
+2) Replace the current definition paragraph with this exact text:
+
+“One Property Review covers one condo unit/address. Upload the status certificate and related PDFs and get one consolidated report.”
+
+3) Keep the Limits line but shorten it to this exact text:
+
+“Limits: up to 600 total pages or 75 MB across all documents. Larger packages may require splitting (each part counts as a separate Property Review).”
+
+========================================================
+TASK 2 — Replace the header subcopy (less defensive)
+========================================================
+Under “Simple, transparent pricing”, replace:
+“Choose the plan that fits your workflow. No feature differences between plans.”
+with this exact text:
+“Same product on every plan. Pay only for volume.”
+
+========================================================
+TASK 3 — Make overage billing behavior explicit near the plans
+========================================================
+Add a small, subtle line (below the plan cards OR directly under the definition box) with this exact text:
+“Overages: we’ll prompt you to approve before any extra charges.”
+
+Make sure this matches the FAQ wording and is visible without scrolling too far.
+
+========================================================
+TASK 4 — Improve Pay-as-you-go CTA label (less awkward phrasing)
+========================================================
+On the Pay-as-you-go card, change the button label from:
+“Buy a Property Review”
+to:
+“Buy 1 Review”
+
+Keep the rest of the Pay-as-you-go card unchanged.
+
+========================================================
+TASK 5 — Ensure consistency + QA
+========================================================
+- Confirm “Property Review” is consistently capitalized across the page.
+- Ensure the definition box still appears above the plans.
+- Mobile: definition box, plan cards, included list, FAQ all stack cleanly.
+- Commit the changes.
+```

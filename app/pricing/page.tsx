@@ -11,7 +11,7 @@ export default function PricingPage() {
       description: 'Best for occasional files.',
       included: null,
       overage: null,
-      cta: 'Buy a Property Review',
+      cta: 'Buy 1 Review',
       popular: false,
     },
     {
@@ -56,7 +56,7 @@ export default function PricingPage() {
             Simple, transparent pricing
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Choose the plan that fits your workflow. No feature differences between plans.
+            Same product on every plan. Pay only for volume.
           </p>
         </div>
 
@@ -66,10 +66,13 @@ export default function PricingPage() {
               What counts as a Property Review?
             </h2>
             <p className="text-slate-700 leading-relaxed mb-4">
-              One Property Review covers one condo unit/address (one unit/address). It can include multiple PDFs (status certificate + supplementary documents) and produces one consolidated report.
+              One Property Review covers one condo unit/address. Upload the status certificate and related PDFs and get one consolidated report.
             </p>
-            <p className="text-slate-600 text-sm">
-              <strong>Limits:</strong> up to 600 total pages or 75 MB across all documents for that property. If a package exceeds limits, you may be asked to split it into two parts (each part counts as a separate Property Review).
+            <p className="text-slate-600 text-sm mb-4">
+              <strong>Limits:</strong> up to 600 total pages or 75 MB across all documents. Larger packages may require splitting (each part counts as a separate Property Review).
+            </p>
+            <p className="text-slate-500 text-sm italic">
+              Overages: we'll prompt you to approve before any extra charges.
             </p>
           </div>
         </div>
