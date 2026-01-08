@@ -45,6 +45,16 @@ class NodeCanvasFactory {
 }
 
 export async function parsePDF(buffer: Buffer): Promise<PDFParseResult> {
+  // Check if buffer looks like a valid PDF (should start with %PDF-)
+  const header = buffer.slice(0, 8).toString('utf-8');
+  if (!header.startsWith('%PDF-')) {
+    throw new Error(`Invalid PDF: File does not appear to be a PDF (header: ${header.substring(0, 5)})`);
+  }
+  
+  console.log(`Parsing PDF: ${buffer.length} bytes, header: ${header.trim()}`);
+  
+  let primaryError: string | null = null;
+  
   try {
     const data = await pdf(buffer, {
       pagerender: renderPage,
@@ -71,17 +81,38 @@ export async function parsePDF(buffer: Buffer): Promise<PDFParseResult> {
       };
     }
 
-    console.log('Text extraction insufficient, falling back to OCR...');
-    return await parsePDFWithOCR(buffer);
+    console.log(`Text extraction insufficient (${cleanedText.length} chars), falling back to OCR...`);
+    primaryError = `Text extraction only found ${cleanedText.length} characters`;
   } catch (error) {
-    console.error('PDF parsing error:', error);
-    console.log('Falling back to OCR due to parse error...');
-    try {
-      return await parsePDFWithOCR(buffer);
-    } catch (ocrError) {
-      console.error('OCR also failed:', ocrError);
-      throw new Error(`Failed to parse PDF: ${error}`);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('PDF parsing error:', errorMsg);
+    primaryError = errorMsg;
+    
+    // Check for specific error types
+    if (errorMsg.includes('password') || errorMsg.includes('encrypted')) {
+      throw new Error('PDF is password-protected or encrypted. Please remove the password and try again.');
     }
+  }
+  
+  // Fall back to OCR
+  console.log('Falling back to OCR...');
+  try {
+    return await parsePDFWithOCR(buffer);
+  } catch (ocrError) {
+    const ocrErrorMsg = ocrError instanceof Error ? ocrError.message : String(ocrError);
+    console.error('OCR also failed:', ocrErrorMsg);
+    
+    // Check for specific OCR error types
+    if (ocrErrorMsg.includes('password') || ocrErrorMsg.includes('PasswordException')) {
+      throw new Error('PDF is password-protected or encrypted. Please remove the password and try again.');
+    }
+    
+    if (ocrErrorMsg.includes('Invalid PDF') || ocrErrorMsg.includes('InvalidPDFException')) {
+      throw new Error('PDF appears to be corrupted or malformed. Please try re-exporting the document.');
+    }
+    
+    // Combine both errors for better diagnostics
+    throw new Error(`PDF parsing failed. Primary: ${primaryError}. OCR fallback: ${ocrErrorMsg}`);
   }
 }
 
@@ -101,6 +132,23 @@ async function parsePDFWithOCR(buffer: Buffer): Promise<PDFParseResult> {
   
   try {
     pdfDoc = await loadingTask.promise;
+  } catch (loadError: any) {
+    // Handle pdfjs-specific errors
+    const errorName = loadError?.name || '';
+    const errorMessage = loadError?.message || String(loadError);
+    
+    console.error(`pdfjs load error: name=${errorName}, message=${errorMessage}`);
+    
+    if (errorName === 'PasswordException' || errorMessage.includes('password')) {
+      throw new Error('PasswordException: PDF requires a password');
+    }
+    if (errorName === 'InvalidPDFException' || errorMessage.includes('Invalid PDF')) {
+      throw new Error('InvalidPDFException: PDF structure is corrupted');
+    }
+    throw loadError;
+  }
+  
+  try {
     const numPages = pdfDoc.numPages;
     const pagesToProcess = Math.min(numPages, MAX_OCR_PAGES);
 
