@@ -1,10 +1,9 @@
 // Polyfill for Node < 22 (Promise.withResolvers support)
 import "@ungap/with-resolvers";
 
-// Polyfill DOMMatrix and Path2D for Node.js (required by pdfjs-dist for rendering)
+// Polyfill DOMMatrix for Node.js (required by pdfjs-dist for rendering)
 // Must be imported BEFORE pdfjs-dist
 import DOMMatrixPolyfill from 'dommatrix';
-import 'path2d-polyfill';
 
 if (typeof globalThis.DOMMatrix === 'undefined') {
   (globalThis as any).DOMMatrix = DOMMatrixPolyfill;
