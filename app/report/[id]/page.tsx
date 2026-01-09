@@ -300,7 +300,7 @@ const generateClientLetter = (analysis: Analysis) => {
     // Stage 2: Extract and evaluate MONETARY amounts (dollar signs)
     // These are unambiguous - if we see $X, it's meant to be a monetary value
     const dollarAmounts: number[] = [];
-    const dollarMatches = [...normalized.matchAll(/\$[\d,]+(?:\.\d{1,2})?/g)];
+    const dollarMatches = Array.from(normalized.matchAll(/\$[\d,]+(?:\.\d{1,2})?/g));
     for (const match of dollarMatches) {
       const amount = parseFloat(match[0].replace(/[$,]/g, ''));
       if (!isNaN(amount)) dollarAmounts.push(amount);
@@ -319,8 +319,8 @@ const generateClientLetter = (analysis: Analysis) => {
     // Expanded keyword list to cover common certificate terminology
     const balanceKeywordPattern = /(?:arrears|balance|owing|amount|outstanding|due|assessment|levy|contribution|fee)[:\s]+(?:\$)?([\d,]+(?:\.\d{1,2})?)/g;
     const keywordAmounts: number[] = [];
-    
-    const keywordMatches = [...normalized.matchAll(balanceKeywordPattern)];
+
+    const keywordMatches = Array.from(normalized.matchAll(balanceKeywordPattern));
     for (const match of keywordMatches) {
       const amount = parseFloat(match[1].replace(/,/g, ''));
       if (!isNaN(amount)) keywordAmounts.push(amount);
