@@ -449,7 +449,7 @@ const generateClientLetter = (analysis: Analysis) => {
   const plannedAssessments = getItem('special_assessments', 'planned_assessments') || getItem('specialAssessments', 'planned_assessments');
   
   // Determine opening statement based on risk rating and issues
-  const highIssues = issues.filter(i => i.severity === 'high' || i.severity === 'error');
+  const highIssues = issues.filter(i => i.severity === 'high');
   const warningIssues = issues.filter(i => i.severity === 'warning');
   
   let openingStatement = '';
