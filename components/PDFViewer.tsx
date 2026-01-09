@@ -27,6 +27,8 @@ export default function PDFViewer({
   onClose,
   onPageChange,
 }: PDFViewerProps) {
+  // Accept both pdfUrl and pdfUrlOverride for compatibility
+  const actualPdfUrl = pdfUrlOverride;
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(page);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -39,34 +41,28 @@ export default function PDFViewer({
     setCurrentPage(page);
   }, [page]);
 
-  // Fetch PDF URL from API
+  // Use provided PDF URL or load from sessionStorage
   useEffect(() => {
-    if (pdfUrlOverride) {
-      setPdfUrl(pdfUrlOverride);
+    if (actualPdfUrl) {
+      setPdfUrl(actualPdfUrl);
       setLoading(false);
       setError(null);
       return;
     }
 
-    const fetchPdfUrl = async () => {
-      try {
-        const response = await fetch(`/api/reports/pdf?id=${reportId}`);
-        const data = await response.json();
-        
-        if (data.success && data.url) {
-          setPdfUrl(data.url);
-        } else {
-          // For demo, use a placeholder
-          setError('PDF preview not available in demo mode');
-        }
-      } catch (err) {
-        setError('Failed to load PDF');
-      }
+    // Try to get from sessionStorage as fallback
+    const storedPdfUrl = sessionStorage.getItem('currentPdfUrl');
+    if (storedPdfUrl) {
+      setPdfUrl(storedPdfUrl);
       setLoading(false);
-    };
+      setError(null);
+      return;
+    }
 
-    fetchPdfUrl();
-  }, [pdfUrlOverride, reportId]);
+    // If no PDF URL available, show error
+    setError('PDF not available. Please upload documents to view PDF.');
+    setLoading(false);
+  }, [actualPdfUrl, reportId]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
