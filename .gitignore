@@ -15,6 +15,9 @@ dist
 
 # Production
 *.local
+# Environment variables - protect all .env files
+.env
+.env.*
 .env*.local
 
 # Debug
