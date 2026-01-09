@@ -7,8 +7,8 @@ import { normalizeSections } from './section-normalizer';
 // Venice.ai API - OpenAI-compatible endpoint
 // Uses DIEM tokens for zero-marginal-cost inference
 const createVeniceClient = () => {
-  const apiKey = process.env.VENICE_API_KEY;
-  if (!apiKey) {
+  const apiKey = process.env.VENICE_API_KEY?.trim();
+  if (!apiKey || apiKey.length === 0) {
     throw new Error('VENICE_API_KEY is not configured');
   }
 

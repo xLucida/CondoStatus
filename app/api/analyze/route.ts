@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeStatusCertificate } from '@/lib/claude-analyzer';
 import { parsePDF } from '@/lib/pdf-parser';
+import { checkRateLimit } from '@/lib/rate-limit';
+import {
+  sanitizePropertyAddress,
+  validatePropertyAddress,
+  sanitizeFileName,
+  sanitizePropertyUnit,
+  sanitizePropertyCity,
+  validateBase64,
+  validateDocType,
+  validateFileSize,
+} from '@/lib/validation';
 
 export const maxDuration = 300; // Allow up to 5 minutes for multi-document analysis with OCR
 
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 5;
 const DOC_PARSE_CONCURRENCY = 3; // Parse up to 3 documents in parallel
 const MIN_EXTRACTED_TEXT_LENGTH = 100;
 const MAX_TOTAL_SIZE = 75 * 1024 * 1024; // 75MB total
 const MAX_FILES = 20;
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 interface FileInput {
   fileName: string;
@@ -54,20 +62,23 @@ function getClientIp(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  const now = Date.now();
-  const entry = rateLimitStore.get(ip);
-  const resetAt = entry && entry.resetAt > now ? entry.resetAt : now + RATE_LIMIT_WINDOW_MS;
-  const count = entry && entry.resetAt > now ? entry.count : 0;
-
-  if (count >= RATE_LIMIT_MAX) {
-    const retryAfterSeconds = Math.max(1, Math.ceil((resetAt - now) / 1000));
+  
+  // Check rate limit
+  const rateLimit = await checkRateLimit(ip);
+  if (!rateLimit.allowed) {
     return NextResponse.json(
       { success: false, error: 'Rate limit exceeded. Please try again shortly.' },
-      { status: 429, headers: { 'Retry-After': retryAfterSeconds.toString() } }
+      {
+        status: 429,
+        headers: {
+          'Retry-After': (rateLimit.retryAfter || 60).toString(),
+          'X-RateLimit-Limit': '5',
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+        },
+      }
     );
   }
-
-  rateLimitStore.set(ip, { count: count + 1, resetAt });
 
   try {
     const body = await request.json();
@@ -91,22 +102,33 @@ export async function POST(request: NextRequest) {
         );
       }
       files = [{ fileName, fileType, docType: 'status_certificate', file }];
-      propertyId = `prop-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      propertyId = `prop-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
       propertyAddress = 'Unknown';
     } else {
       // New multi-file format
       files = body.files || [];
       propertyId = body.propertyId;
-      propertyAddress = body.propertyAddress;
-      propertyUnit = body.propertyUnit;
-      propertyCity = body.propertyCity;
       
-      if (!propertyAddress) {
+      // Sanitize and validate property address
+      const rawAddress = body.propertyAddress;
+      if (!rawAddress || typeof rawAddress !== 'string') {
         return NextResponse.json(
           { success: false, error: 'Property address is required' },
           { status: 400 }
         );
       }
+      
+      propertyAddress = sanitizePropertyAddress(rawAddress);
+      const addressValidation = validatePropertyAddress(propertyAddress);
+      if (!addressValidation.valid) {
+        return NextResponse.json(
+          { success: false, error: addressValidation.error || 'Invalid property address' },
+          { status: 400 }
+        );
+      }
+      
+      propertyUnit = sanitizePropertyUnit(body.propertyUnit);
+      propertyCity = sanitizePropertyCity(body.propertyCity);
     }
 
     if (!files || files.length === 0) {
@@ -124,16 +146,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for Venice API key
-    if (!process.env.VENICE_API_KEY) {
+    const apiKey = process.env.VENICE_API_KEY?.trim();
+    if (!apiKey || apiKey.length === 0) {
       return NextResponse.json(
         { success: false, error: 'API not configured. Please set VENICE_API_KEY.' },
         { status: 500 }
       );
     }
 
-    // Validate and calculate total size
+    // Validate and sanitize files
     let totalBytes = 0;
-    for (const f of files) {
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      
+      // Validate file metadata
       if (!f.fileName || typeof f.fileName !== 'string') {
         return NextResponse.json(
           { success: false, error: 'Missing file metadata' },
@@ -141,6 +167,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Sanitize file name
+      f.fileName = sanitizeFileName(f.fileName);
+
+      // Validate file type
       if (f.fileType && f.fileType !== 'application/pdf') {
         return NextResponse.json(
           { success: false, error: `Invalid file type for ${f.fileName}. Please upload PDF files only.` },
@@ -155,8 +185,36 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Validate document type
+      if (!validateDocType(f.docType || 'other')) {
+        return NextResponse.json(
+          { success: false, error: `Invalid document type: ${f.docType}` },
+          { status: 400 }
+        );
+      }
+
+      // Validate base64
+      const base64Validation = validateBase64(f.file);
+      if (!base64Validation.valid) {
+        return NextResponse.json(
+          { success: false, error: `Invalid file data for ${f.fileName}: ${base64Validation.error}` },
+          { status: 400 }
+        );
+      }
+
+      // Calculate file size
       const padding = f.file.endsWith('==') ? 2 : f.file.endsWith('=') ? 1 : 0;
       const estimatedBytes = Math.floor((f.file.length * 3) / 4) - padding;
+      
+      // Validate individual file size
+      const fileSizeValidation = validateFileSize(estimatedBytes, MAX_TOTAL_SIZE);
+      if (!fileSizeValidation.valid) {
+        return NextResponse.json(
+          { success: false, error: fileSizeValidation.error },
+          { status: 400 }
+        );
+      }
+      
       totalBytes += estimatedBytes;
     }
 
@@ -319,7 +377,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate report ID
-    const reportId = `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const reportId = `report-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
     // Build documents summary
     const documentsSummary = {
@@ -337,26 +395,35 @@ export async function POST(request: NextRequest) {
       failedFiles: failedDocs,
     };
 
-    return NextResponse.json({
-      success: true,
-      reportId,
-      propertyId,
-      property: {
-        address: propertyAddress,
-        unit: propertyUnit,
-        city: propertyCity,
+    return NextResponse.json(
+      {
+        success: true,
+        reportId,
+        propertyId,
+        property: {
+          address: propertyAddress,
+          unit: propertyUnit,
+          city: propertyCity,
+        },
+        analysis,
+        documentsSummary,
+        pageMap,
+        pagesInfo: allPagesInfo,
+        extractedTextLength: combinedText.length,
+        pageCount: totalPageCount,
+        usedOCR: anyUsedOCR,
+        warnings: failedDocs.length > 0 
+          ? [`${failedDocs.length} document(s) could not be parsed and were excluded from analysis: ${failedDocs.map(d => d.fileName).join(', ')}`]
+          : [],
       },
-      analysis,
-      documentsSummary,
-      pageMap,
-      pagesInfo: allPagesInfo,
-      extractedTextLength: combinedText.length,
-      pageCount: totalPageCount,
-      usedOCR: anyUsedOCR,
-      warnings: failedDocs.length > 0 
-        ? [`${failedDocs.length} document(s) could not be parsed and were excluded from analysis: ${failedDocs.map(d => d.fileName).join(', ')}`]
-        : [],
-    });
+      {
+        headers: {
+          'X-RateLimit-Limit': '5',
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+        },
+      }
+    );
 
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

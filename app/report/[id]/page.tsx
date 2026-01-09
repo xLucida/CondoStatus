@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const PDFViewer = dynamic(() => import('@/components/PDFViewer'), { ssr: false });
 
@@ -783,7 +784,8 @@ export default function ReportPage() {
   const sectionIcons: Record<string, string> = { common_expenses: '💰', reserve_fund: '🏦', special_assessments: '📋', legal_proceedings: '⚖️', insurance: '🛡️', management: '👥', rules: '📜', building_notes: '🏢' };
 
   return (
-    <div className="min-h-screen bg-cream-50 print:bg-white">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-cream-50 print:bg-white">
       {/* Header */}
       <header className="bg-navy-900 border-b border-navy-800 sticky top-0 z-30 print:static">
         <div className="px-4 py-3 flex items-center justify-between">
@@ -1005,6 +1007,7 @@ export default function ReportPage() {
           .print\\:bg-white { background-color: white !important; }
         }
       `}</style>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

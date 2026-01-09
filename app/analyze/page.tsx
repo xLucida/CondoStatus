@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/Navigation';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const DOC_TYPES = [
   { value: 'status_certificate', label: 'Status Certificate' },
@@ -76,7 +77,7 @@ export default function AnalyzePage() {
         continue;
       }
       validFiles.push({
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
         file,
         docType: 'other',
       });
@@ -126,8 +127,17 @@ export default function AnalyzePage() {
     setProgressMessage('Preparing documents...');
     setError(null);
 
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutMs = 4 * 60 * 1000; // 4 minutes (slightly less than server's 5 min)
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      setError('Request timed out. The analysis is taking longer than expected. Please try again with fewer documents.');
+      setAnalyzing(false);
+    }, timeoutMs);
+
     try {
-      const propertyId = `prop-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const propertyId = `prop-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
       
       const fileData: any[] = [];
       for (let index = 0; index < files.length; index++) {
@@ -167,7 +177,11 @@ export default function AnalyzePage() {
           propertyCity: propertyCity.trim() || undefined,
           files: fileData,
         }),
+        signal: controller.signal, // Add abort signal for timeout
       });
+
+      // Clear timeout on successful response
+      clearTimeout(timeoutId);
 
       setProgress(85);
       setProgressMessage('Finalizing report...');
@@ -213,7 +227,13 @@ export default function AnalyzePage() {
       router.push(`/report/${data.reportId}`);
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Analysis failed');
+      clearTimeout(timeoutId); // Clear timeout on error
+      
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request was cancelled or timed out. Please try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Analysis failed');
+      }
       setAnalyzing(false);
     }
   };
@@ -221,8 +241,9 @@ export default function AnalyzePage() {
   const canSubmit = files.length > 0 && propertyAddress.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-cream-50">
-      <Navigation />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-cream-50">
+        <Navigation />
 
       <main className="max-w-4xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
@@ -512,6 +533,7 @@ export default function AnalyzePage() {
           Always verify extracted data against the source documents.
         </p>
       </main>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
