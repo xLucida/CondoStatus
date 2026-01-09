@@ -397,17 +397,27 @@ export default function DemoPage() {
   const [activeSection, setActiveSection] = useState('action-list');
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const letterRef = useRef<HTMLTextAreaElement>(null);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const analysis = DEMO_ANALYSIS;
   const reservePerUnit = 7667.58;
   const sectionIcons: Record<string, string> = { common_expenses: '💰', reserve_fund: '🏦', special_assessments: '📋', legal_proceedings: '⚖️', insurance: '🛡️', management: '👥', rules: '📜', building_notes: '🏢' };
   const getSectionWarnings = (section: any) => section.items.filter((i: any) => i.status === 'warning' || i.status === 'error').length;
 
+  // Cleanup copy timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Track scroll position for sticky CTA and active section
   useEffect(() => {
     const handleScroll = () => {
       setShowStickyCTA(window.scrollY > 800);
-      
+
       // Update active section based on scroll position
       const sections = ['action-list', 'issues', 'reserve_fund', 'insurance', 'legal_proceedings', 'management'];
       for (const sectionId of sections.reverse()) {
@@ -429,7 +439,11 @@ export default function DemoPage() {
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setCopiedText(text.slice(0, 30) + '...');
-    setTimeout(() => { setCopied(false); setCopiedText(''); }, 2000);
+    // Clear existing timeout if any
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+    copyTimeoutRef.current = setTimeout(() => { setCopied(false); setCopiedText(''); }, 2000);
   }, []);
 
   const handlePageClick = useCallback((page: number) => {

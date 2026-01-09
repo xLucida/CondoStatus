@@ -46,6 +46,11 @@ interface Analysis {
   issues?: Issue[];
   corporation?: string;
   address?: string;
+  unit?: string;
+  parking?: string;
+  locker?: string;
+  owner?: string;
+  common_interest?: string;
   certificate_date?: string;
   expiry_date?: string;
   risk_rating?: 'GREEN' | 'YELLOW' | 'RED';
@@ -665,6 +670,7 @@ export default function ReportPage() {
   const [showLetterModal, setShowLetterModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const letterRef = useRef<HTMLTextAreaElement>(null);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const formatBytes = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -703,6 +709,27 @@ export default function ReportPage() {
     setLoading(false);
   }, []);
 
+  // Cleanup copy timeout and blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      // Clean up blob URLs when leaving the report page
+      const pdfUrlsStr = sessionStorage.getItem('pdfUrls');
+      if (pdfUrlsStr) {
+        try {
+          const pdfUrls = JSON.parse(pdfUrlsStr);
+          Object.values(pdfUrls).forEach((url) => {
+            if (typeof url === 'string') URL.revokeObjectURL(url);
+          });
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    };
+  }, []);
+
   const viewPDF = useCallback((page: number | null, highlight?: string | null, documentName?: string | null) => {
     if (page) {
       // Try to switch to the correct document's PDF
@@ -733,16 +760,23 @@ export default function ReportPage() {
   const copyToClipboard = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    // Clear existing timeout if any
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+    }
+    copyTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
   }, []);
 
   const exportAnalysis = useCallback(() => {
     if (!analysis) return;
     const blob = new Blob([JSON.stringify(analysis, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = `analysis-${analysis.corporation || 'report'}.json`;
     a.click();
+    // Revoke the URL after a short delay to ensure download starts
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   }, [analysis]);
 
   if (loading) {
@@ -984,10 +1018,13 @@ export default function ReportPage() {
               </button>
               <button onClick={() => {
                 const blob = new Blob([letterRef.current?.value || ''], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
+                a.href = url;
                 a.download = `client-letter-${analysis.corporation || 'report'}.txt`;
                 a.click();
+                // Revoke the URL after a short delay to ensure download starts
+                setTimeout(() => URL.revokeObjectURL(url), 100);
               }} className="flex-1 py-2 px-4 rounded-lg font-medium bg-brass-500 text-navy-900 hover:bg-brass-600">
                 Download
               </button>
