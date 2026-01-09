@@ -215,6 +215,19 @@ export default function AnalyzePage() {
       
       // Store all PDFs for viewing with document names
       if (files.length > 0) {
+        // Clean up old blob URLs before creating new ones
+        const oldPdfUrlsStr = sessionStorage.getItem('pdfUrls');
+        if (oldPdfUrlsStr) {
+          try {
+            const oldPdfUrls = JSON.parse(oldPdfUrlsStr);
+            Object.values(oldPdfUrls).forEach((url) => {
+              if (typeof url === 'string') URL.revokeObjectURL(url);
+            });
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
+
         const pdfUrls: Record<string, string> = {};
         files.forEach((f, idx) => {
           pdfUrls[f.file.name] = URL.createObjectURL(f.file);
