@@ -46,6 +46,11 @@ interface Analysis {
   issues?: Issue[];
   corporation?: string;
   address?: string;
+  unit?: string;
+  parking?: string;
+  locker?: string;
+  owner?: string;
+  common_interest?: string;
   certificate_date?: string;
   expiry_date?: string;
   risk_rating?: 'GREEN' | 'YELLOW' | 'RED';
